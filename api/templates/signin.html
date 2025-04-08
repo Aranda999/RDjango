@@ -1,0 +1,104 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="" name="keywords">
+    <meta content="" name="description">
+    <title>Login</title>
+    <link rel="icon" type="image/jpg" href="{% static 'img/footer.jpg' %}">
+    <link href="{% static 'css/bootstrap.min.css'%}" rel="stylesheet">
+    <link href="{% static 'css/style.css'%}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+
+</head>
+
+<body>
+    <!--Imagen del fondo principal-->
+    <img src="{% static 'img/FondoLogin.jpg' %}" style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; object-position: center; margin: 0; padding: 0; z-index: -1;">
+    <!-- Contenedor principal de login -->
+    <div class="LoginContainer">
+        <div class="Logos">
+            <img src="{% static 'img/IconCdmx.png' %}" alt="Logo 1" class="logo" style="height: 55px; width: 210px; position: relative; top: 10px; margin-left: 20px;">
+            <img src="{% static 'img/IconMetro.webp' %}" alt="Logo 2" class="logo" style="height: 60px; width: 120px; margin-left: 30px; position: relative; top: 10px;">
+            <p class="title">BIENVENIDO LOGIN ACCESS</p>
+            <i class="fa-solid fa-user" style="color: black; margin-left: 40px; position: relative; top: 40px; font-size: 30px;"></i>
+            <i class="fa-solid fa-lock" style="color: black; margin-left: -30px; position: relative; top: 115px; font-size: 30px;"></i>
+        </div>
+<!-- signin.html -->
+        <form method="POST">
+            {% csrf_token %}
+            <!-- Aquí van los campos del formulario -->
+            <div class="d-flex flex-column align-items-start" style="margin-left: 90px;">
+                <label for="floatingInput" style="color: black; font-size: 12px; font-weight: bold;">USERNAME</label>
+                <input type="text" class="form-control shadow-sm" id="floatingInput" name="username" placeholder="name@example.com" required style="width: 220px; height: 23px;">
+            </div>
+            <div class="d-flex flex-column align-items-start" style="margin-left: 90px;">
+                <label for="floatingPassword" style="color: black; font-size: 12px; font-weight: bold; position: relative; top: 35px;">PASSWORD</label>
+                <input type="password" class="form-control shadow-sm" id="floatingPassword" name="password" placeholder="Password" required style="width: 220px; height: 23px; position: relative; top: 35px;">
+            </div>
+            <button type="submit" class="bn btn-lg shadow-sm" 
+            style="background-color: #ff6200; border-radius: 5px; width: 280px; height: 30px; position: relative; 
+            top: 80px; display: flex; justify-content: center; align-items: center; margin-left: 55px; 
+            border: 1px solid #000; font-size: 16px;">ACCESS</button>
+            <a href="{% url 'password' %}" class="" style="position: relative; top: 100px; margin-left: 130px; text-decoration: underline; color: black;">solicitar contraseña</a>
+
+            <img src="{% static 'img/footer.jpg' %}" alt="Logo 2" class="logo" 
+            style="height: 60px; width: 399px; margin-left: -1px; position: relative; top: 196px; 
+            border-radius: 0px 0px 10px 10px; filter: sepia(0.5) saturate(1.5) hue-rotate(340deg);">
+            {% if error %}
+            <p style="color: red; position: relative; top: 50px; margin-left: 120px;">{{ error }}</p>
+            {% endif %}
+        </form>
+        {% if messages %}
+        <div class="alert alert-info" style = "height: 60px; position: relative; top: 50px;">
+            {% for message in messages %}
+                <p style = "font-size: 14px; text-align: center; " >{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}       
+    </div>
+
+
+
+
+
+
+    <style>
+        .LoginContainer {
+            width: 400px; 
+            height: 575px;
+            margin: 40px auto;
+            margin-top: 100px;
+            background-color: rgb(255, 255, 255);
+            border: 1px solid #ddd; 
+            border-radius: 10px; 
+        }
+        .title{
+        margin-left: 82px;
+        font-weight: bold;
+        margin-top: 45px;
+        font-family: 'Times New Roman', Times, serif;
+        color: black;
+        }
+
+         /* Media query para dispositivos móviles */
+        @media (max-width: 768px) {
+        .login-container {
+            width: 90%; /* Ancho del contenedor en dispositivos móviles */
+            margin: 20px auto; /* Margen superior e inferior en dispositivos móviles */
+        }
+        }
+        @media (max-width: 768px) {
+        .logo {
+        width: 30%; /* ajusta el ancho según sea necesario */
+        }
+        }
+    </style>
+
+    <!-- JavaScript Libraries -->
+</body>
+
+</html>
