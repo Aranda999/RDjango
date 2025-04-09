@@ -42,7 +42,8 @@
                     <i class="fa-solid fa-lock"></i>
                 </div>
                 <div class="boton">
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#cambiarContrasenaModal">CAMBIAR CONTRASEÑA</a>
+                    <!-- El botón abrirá el modal -->
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#cambiarContrasenaModal" id="cambiarContrasenaBtn">CAMBIAR CONTRASEÑA</a>
                 </div>
             </div>
             <!-- Botón para abrir el modal de reservación -->
@@ -55,11 +56,20 @@
                 </div>
             </div>
         </div>
-        <a href="{% url 'logout' %}"  style="text-decoration: underline; color: black;">
+        <!-- Enlace al área de administración de Django (solo visible si el usuario tiene permisos) -->
+        <div class="admin-link" style="position: absolute; top: 10px; right: 20px;">
+            <a href="{% url 'admin:index' %}" style="text-decoration: underline; color: black;
+            padding: 30px; position: relative; top: 70px;">
+                Administración
+            </a>
+        </div>
+        <a href="{% url 'logout' %}" style="text-decoration: underline; color: black;">
             <i class="fa-solid fa-right-from-bracket"></i> 
-            Cerrar sesión</a>
+            Cerrar sesión
+        </a>
         <p>Usuario: {{ request.user.username }}</p>
     </div>
+    
     
     <!-- Modal para cambio de contraseña -->
     <div class="modal fade" id="cambiarContrasenaModal" tabindex="-1" aria-labelledby="cambiarContrasenaModalLabel" aria-hidden="true">

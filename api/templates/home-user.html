@@ -42,7 +42,8 @@
                     <i class="fa-solid fa-lock"></i>
                 </div>
                 <div class="boton">
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#cambiarContrasenaModal">CAMBIAR CONTRASEÑA</a>
+                    <!-- El botón abrirá el modal -->
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#cambiarContrasenaModal" id="cambiarContrasenaBtn">CAMBIAR CONTRASEÑA</a>
                 </div>
             </div>
             <!-- Botón para abrir el modal de reservación -->
@@ -55,7 +56,7 @@
                 </div>
             </div>
         </div>
-        <a href="{% url 'logout' %}"  style="text-decoration: underline; color: black;">
+        <a href="{% url 'logout' %}" style="text-decoration: underline; color: black;">
             <i class="fa-solid fa-right-from-bracket"></i> 
             Cerrar sesión
         </a>
@@ -64,28 +65,41 @@
     
     <!-- Modal para cambio de contraseña -->
     <div class="modal fade" id="cambiarContrasenaModal" tabindex="-1" aria-labelledby="cambiarContrasenaModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 400px; margin: 0 auto;">
             <div class="modal-content" style="border-radius: 5px;">
                 <div class="modal-header" style="background-color: rgb(65, 70, 71); border-radius: 3px 3px 0 0; padding: 10px;">
-                    <button style="filter: invert(100%) sepia(100%) saturate(0%) hue-rotate(0deg) brightness(103%) contrast(103%);" type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title" id="cambiarContrasenaModalLabel" style="color: #fff;">Cambio de Contraseña</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" style="padding: 20px;">
-                    <h5 class="modal-title" id="cambiarContrasenaModalLabel" style="color:rgb(0, 0, 0);">Metro CDMX</h5>
-                    <form>
-                        <div class="mb-3" style="padding: 5px;">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
                             <label for="nuevaContrasena" class="form-label">Nueva contraseña</label>
-                            <input type="password" class="form-control" id="nuevaContrasena" style="border: 1px solid black;">
+                            <div class="input-group input-group-sm">
+                                <input type="password" class="form-control" id="nuevaContrasena" name="nuevaContrasena" required style="border: 1px solid black; height: 35px;">
+                                <button type="button" class="btn btn-outline-secondary" id="toggleNuevaContrasena" style="border: 1px solid black; height: 35px;">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                         </div>
-                        <div class="mb-3" style="padding: 5px;">
+                        <div class="mb-3">
                             <label for="confirmarContrasena" class="form-label">Confirmar contraseña</label>
-                            <input type="password" class="form-control" id="confirmarContrasena" style="border: 1px solid black;">
+                            <div class="input-group input-group-sm">
+                                <input type="password" class="form-control" id="confirmarContrasena" name="confirmarContrasena" required style="border: 1px solid black; height: 35px;">
+                                <button type="button" class="btn btn-outline-secondary" id="toggleConfirmarContrasena" style="border: 1px solid black; height: 35px;">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                         </div>
-                        <button type="submit" class="btn" style="background-color: #ff6200; color: black; width: 50%; margin: 0 auto; display: block; padding: 10px; border: 1px solid black; border-radius: 5px;">Guardar</button>
+                        <button type="submit" class="btn" style="background-color: #ff6200; color: black; width: 50%; margin: 0 auto; display: block; padding: 5px; border: 1px solid black; border-radius: 5px;">Guardar</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
+    
+    
     <!-- Modal para reservación -->
     <div class="modal fade" id="reservacionModal" tabindex="-1" aria-labelledby="reservacionModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -311,7 +325,44 @@
                 }
     </style>
 
-
+    <script>
+        document.querySelector('form').addEventListener('submit', function(e) {
+            var nuevaContrasena = document.getElementById('nuevaContrasena').value;
+            var confirmarContrasena = document.getElementById('confirmarContrasena').value;
+        
+            if (nuevaContrasena !== confirmarContrasena) {
+                e.preventDefault();
+                alert('Las contraseñas no coinciden.');
+            }
+        });
+        document.getElementById('toggleNuevaContrasena').addEventListener('click', function() {
+            var input = document.getElementById('nuevaContrasena');
+            var icon = this.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        });
+    
+        document.getElementById('toggleConfirmarContrasena').addEventListener('click', function() {
+            var input = document.getElementById('confirmarContrasena');
+            var icon = this.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        });
+    </script>
 
 
 
