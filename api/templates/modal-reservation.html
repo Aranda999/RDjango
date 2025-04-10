@@ -1,0 +1,89 @@
+    <!-- Modal para reservación -->
+    <div class="modal fade" id="reservacionModal" tabindex="-1" aria-labelledby="reservacionModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 15px;">
+                <div class="modal-header" style="background-color: rgb(106, 99, 99); border-top-left-radius: 13px; border-top-right-radius: 13px; height: 20px;">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="background-color: transparent; border: none; padding: 0; font-size: 15px; margin-right: 3px;"></button>
+                </div>
+                <h5 class="modal-title" id="reservacionModalLabel" style="margin-left: 15px;">Metro CDMX</h5>
+                <div class="modal-body">
+                    <!-- Evento -->
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: bold;">EVENTO</label>
+                        <input type="text" class="form-control" id="evento" placeholder="Ingrese el evento" style="border: 1px solid black;">
+                    </div>
+    
+                    <!-- Área -->
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: bold;">ÁREA</label>
+                        <select class="form-select" id="area" style="border: 1px solid black;">
+                            <option selected disabled>Seleccione un área</option>
+                        </select>                        
+                    </div>
+    
+                    <!-- Comentarios -->
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: bold;">COMENTARIOS</label>
+                        <textarea class="form-control" id="comentarios" rows="2" placeholder="Ingrese sus comentarios" style="resize: none; border: 1px solid black;"></textarea>
+                        <p>Max 15 palabras</p>
+                    </div>
+    
+                    <!-- Fecha -->
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: bold;">FECHA</label>
+                        <input type="date" class="form-control" id="fechaReservacion" style="border: 1px solid black;">
+                    </div>
+    
+                    <!-- Hora inicio y fin -->
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <label class="form-label" style="font-weight: bold;">H. INICIO</label>
+                                <input type="time" class="form-control" id="horaInicio" style="border: 1px solid black;">
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <label class="form-label" style="font-weight: bold;">H. FINALIZACIÓN</label>
+                                <input type="time" class="form-control" id="horaFin" style="border: 1px solid black;">
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <label class="form-label" style="font-weight: bold;">SALA DE JUNTAS</label>
+                                <div class="input-group">
+                                    <select class="form-select" id="salaJuntas" style="border: 1px solid black;" onchange="mostrarDetallesSala()">
+                                        <option selected disabled>Seleccione una sala</option>
+                                        <option value="1">Sala 1</option>
+                                        <option value="2">Sala 2</option>
+                                        <option value="3">Sala 3</option>
+                                    </select>
+                                    <span class="input-group-text"><i class="fas fa-building"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <!-- Número de personas -->
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: bold;">NÚMERO DE PERSONAS</label>
+                        <input type="number" class="form-control" id="numPersonas" placeholder="Ingrese el número de personas" style="border: 1px solid black;">
+                    </div>
+    
+                    <!-- Botón reservar -->
+                    <button type="submit" class="btn" style="background-color: #ff6200; color: black; width: 50%; margin: 0 auto; display: block; padding: 10px; border: 1px solid black; border-radius: 5px;">Reservar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="detallesSala" style="display: none; z-index: 1050; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+        <div class="mb-3" style="background-color: white; border: 2px solid #ccc; padding: 15px; height: auto; width: 550px;">
+            <h5 style="font-weight: bold; color: #333;">Detalles de la sala seleccionada:</h5>
+            <div id="detallesSalaContenido" style="color: #333;"></div>
+        </div>
+    </div>
+    
