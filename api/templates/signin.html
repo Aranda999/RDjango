@@ -37,7 +37,12 @@
             </div>
             <div class="d-flex flex-column align-items-start" style="margin-left: 90px;">
                 <label for="floatingPassword" style="color: black; font-size: 12px; font-weight: bold; position: relative; top: 35px;">PASSWORD</label>
-                <input type="password" class="form-control shadow-sm" id="floatingPassword" name="password" placeholder="Password" required style="width: 220px; height: 23px; position: relative; top: 35px;">
+                <div style="position: relative;">
+                    <input type="password" class="form-control shadow-sm" id="floatingPassword" name="password" placeholder="Password" required style="width: 220px; height: 23px; position: relative; top: 35px;">
+                    <span id="togglePassword" style="position: absolute; top: 35px; right: 10px; cursor: pointer;">
+                        <i class="fa fa-eye" aria-hidden="true"></i>
+                    </span>
+                </div>
             </div>
             <button type="submit" class="bn btn-lg shadow-sm" 
             style="background-color: #ff6200; border-radius: 5px; width: 280px; height: 30px; position: relative; 
@@ -98,7 +103,22 @@
         }
     </style>
 
-    <!-- JavaScript Libraries -->
+    <script>
+        document.getElementById('togglePassword').addEventListener('click', function() {
+            var passwordInput = document.getElementById('floatingPassword');
+            var eyeIcon = this.querySelector('i');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+            }
+        });
+    </script>
+
 </body>
 
 </html>

@@ -3,8 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 
-
-@login_required
+@login_required (login_url= 'login')
 def Home(request):
     if request.user.is_superuser:
         template_view = "home.html"
@@ -13,7 +12,7 @@ def Home(request):
         return redirect("homeuser")
     
 
-@login_required
+@login_required (login_url= 'login')
 def HomeUser(request):
     template_view = "home-user.html"
     

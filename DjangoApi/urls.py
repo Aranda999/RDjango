@@ -16,6 +16,7 @@ Including another URLconf
 """
 
 from django.contrib import admin
+from django.urls import path, reverse_lazy
 from django.urls import path
 from api.home.home_view import Home
 from api.home.home_view import HomeUser
@@ -25,7 +26,7 @@ from api.security.security_view import Password
 from api.security.security_view import reset_password
 from django.contrib.auth.decorators import login_required
 
-admin.site.login = login_required(admin.site.login)
+admin.site.login_url = reverse_lazy('login')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
