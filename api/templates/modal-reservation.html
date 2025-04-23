@@ -1,110 +1,109 @@
 {% load static %}
-
-<div class="modal fade" id="reservacionModal" tabindex="-1" aria-labelledby="reservacionModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content" style="border-radius: 15px;">
-            <div class="modal-header" style="background-color: rgba(106, 99, 99, 0.93); border-top-left-radius: 13px; border-top-right-radius: 13px; height: 20px;">
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
-                    style="background-color: transparent; border: none; padding: 0; font-size: 15px; margin-right: 3px;"></button>
-            </div>
-            <h5 class="modal-title" id="reservacionModalLabel" style="margin-left: 15px;">Metro CDMX</h5>
-            <div class="modal-body">
-
-                <!-- Evento -->
-                <div class="mb-2">
-                    <label class="form-label fw-bold" style="color: black;">EVENTO</label>
-                    <input type="text" class="form-control form-control-sm" id="evento"
-                        placeholder="Ingrese el evento" style="border: 1px solid black;">
+<form method="POST" action="{% url 'homeuser' %}" onsubmit="return validarFormulario()">
+    {% csrf_token %}
+    <div class="modal fade" id="reservacionModal" tabindex="-1" aria-labelledby="reservacionModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 15px;">
+                <div class="modal-header" style="background-color: rgba(106, 99, 99, 0.93); border-top-left-radius: 13px; border-top-right-radius: 13px; height: 20px;">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                        style="background-color: transparent; border: none; padding: 0; font-size: 15px; margin-right: 3px;"></button>
                 </div>
-
-                <!-- Área -->
-                <div class="mb-2">
-                    <label class="form-label fw-bold" style="color: black;">ÁREA</label>
-                    <select class="form-select form-select-sm" id="area" style="border: 1px solid black;">
-                        <option selected disabled>Seleccione un área</option>
-                    </select>
-                </div>
-
-                <!-- Comentarios -->
-                <div class="mb-2">
-                    <label class="form-label fw-bold" style="color: black;">COMENTARIOS</label>
-                    <textarea class="form-control form-control-sm" id="comentarios" rows="2"
-                        placeholder="Ingrese sus comentarios"
-                        style="resize: none; border: 1px solid black;"></textarea>
-                    <p style="margin-bottom: 5px; font-size: 12px;">Max 15 palabras</p>
-                </div>
-
-                <!-- Fecha y Número de personas en una sola fila -->
-                <div class="row">
-                    <div class="col-6">
-                        <div class="mb-2">
-                            <label class="form-label fw-bold" style="color: black;">FECHA</label>
-                            <input type="date" class="form-control form-control-sm" id="fechaReservacion"
-                                style="border: 1px solid black;">
-                        </div>
+                <h5 class="modal-title" id="reservacionModalLabel" style="margin-left: 15px;">Metro CDMX</h5>
+                <div class="modal-body">
+                    <!-- Evento -->
+                    <div class="mb-2">
+                        <label class="form-label fw-bold" style="color: black;">EVENTO</label>
+                        <input type="text" class="form-control form-control-sm" id="evento" name="evento"
+                            placeholder="Ingrese el evento" style="border: 1px solid black;" required>
                     </div>
-                    <div class="col-6">
-                        <div class="mb-2">
-                            <label class="form-label fw-bold" style="color: black;">NÚMERO DE PERSONAS</label>
-                            <input type="number" class="form-control form-control-sm" id="numPersonas" min="0"
-                                placeholder="Ingrese el número" style="border: 1px solid black;">
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Hora inicio y fin -->
-                <div class="row">
-                    <div class="col-6">
-                        <div class="mb-2">
-                            <label class="form-label fw-bold" style="color: black;">H. INICIO</label>
-                            <input type="time" class="form-control form-control-sm" id="horaInicio"
-                                style="border: 1px solid black;">
-                        </div>
+                    <!-- Comentarios -->
+                    <div class="mb-2">
+                        <label class="form-label fw-bold" style="color: black;">COMENTARIOS</label>
+                        <textarea class="form-control form-control-sm" id="comentarios" name="comentarios" rows="2"
+                            placeholder="Ingrese sus comentarios"
+                            style="resize: none; border: 1px solid black;"></textarea>
+                        <p style="margin-bottom: 5px; font-size: 12px;">Max 15 palabras</p>
                     </div>
-                    <div class="col-6">
-                        <div class="mb-2">
-                            <label class="form-label fw-bold" style="color: black;">H. FINALIZACIÓN</label>
-                            <input type="time" class="form-control form-control-sm" id="horaFin"
-                                style="border: 1px solid black;">
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Sala y detalles -->
-                <div class="row align-items-start">
-                    <div class="col-4">
-                        <div class="mb-2">
-                            <label class="form-label fw-bold" style="color: black;">SALA DE JUNTAS</label>
-                            <div class="input-group">
-                                <select class="form-select form-select-sm" id="salaJuntas"
-                                    style="border: 1px solid black; width: 140px;" onchange="mostrarDetallesSala()">
-                                    <option selected disabled>Seleccione</option>
-                                    <option value="1">Sala 1</option>
-                                    <option value="2">Sala 2</option>
-                                    <option value="3">Sala 3</option>
-                                </select>
+                    <!-- Fecha y Número de personas en una sola fila -->
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="mb-2">
+                                <label class="form-label fw-bold" style="color: black;">FECHA</label>
+                                <input type="date" class="form-control form-control-sm" id="fechaReservacion" name="fechaReservacion"
+                                    style="border: 1px solid black;" required>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-2">
+                                <label class="form-label fw-bold" style="color: black;">NÚMERO DE PERSONAS</label>
+                                <input type="number" class="form-control form-control-sm" id="numPersonas" name="numPersonas" min="1"
+                                    placeholder="Ingrese el número" style="border: 1px solid black;" required>
                             </div>
                         </div>
                     </div>
-                    <div class="col-8">
-                        <div id="detallesSalaContenido"
-                            style="background-color: #f9f9f9; border: 1px solid black; border-radius: 5px; padding: 10px 15px; font-size: 13px; min-height: 75px;">
-                            <em>Selecciona una sala para ver los detalles</em>
+
+                    <!-- Hora inicio y fin -->
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="mb-2">
+                                <label class="form-label fw-bold" style="color: black;">H. INICIO</label>
+                                <input type="time" class="form-control form-control-sm" id="horaInicio" name="horaInicio"
+                                    style="border: 1px solid black;" required>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-2">
+                                <label class="form-label fw-bold" style="color: black;">H. FINALIZACIÓN</label>
+                                <input type="time" class="form-control form-control-sm" id="horaFin" name="horaFin"
+                                    style="border: 1px solid black;" required>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Botón reservar -->
-                <button type="submit" class="btn"
-                    style="background-color: #ff6200; color: black; width: 50%; margin: 15px auto 0 auto; display: block; padding: 10px; border: 1px solid black; border-radius: 5px;">
-                    Reservar
-                </button>
+                    <!-- Sala y detalles -->
+                    <div class="row align-items-start">
+                        <div class="col-4">
+                            <div class="mb-2">
+                                <label class="form-label fw-bold" style="color: black;">SALA DE JUNTAS</label>
+                                <div class="input-group">
+                                    <select class="form-select form-select-sm" id="salaJuntas" name="salaJuntas" style="border: 1px solid black; width: 140px;" onchange="mostrarDetallesSala()" required>
+                                        <option selected disabled>Seleccione</option>
+                                        {% for sala in salas %}
+                                            <option value="{{ sala.id_sala }}" data-equipo="{{ sala.equipo }}" data-capacidad="{{ sala.capacidad }}">{{ sala.nombre }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-8">
+                            <div id="detallesSalaContenido" style="background-color: #f9f9f9; border: 1px solid black; border-radius: 5px; padding: 10px 15px; font-size: 13px; min-height: 75px;">
+                                <em>Selecciona una sala para ver los detalles</em>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="mensajeError" style="color: red; font-weight: bold; display: none;"></div>
+
+                    <!-- Botón reservar -->
+                    <button type="submit" class="btn"
+                        style="background-color: #ff6200; color: black; width: 50%; margin: 15px auto 0 auto; display: block; padding: 10px; border: 1px solid black; border-radius: 5px;">
+                        Reservar
+                    </button>
+                </div>
             </div>
         </div>
     </div>
+</form>
+
+
+{% if messages %}
+<div class="alert alert-info" style = "height: 60px; position: relative; top: 50px;">
+    {% for message in messages %}
+        <p style = "font-size: 14px; text-align: center; " >{{ message }}</p>
+    {% endfor %}
 </div>
-
-
+{% endif %}  
 
 
 <style>
@@ -142,37 +141,118 @@
 </style>
 
 <script>
-    const salasInfo = {
-        1: {
-            nombre: "Sala 1",
-            equipo: "Proyector, Pantalla, Pizarrón",
-            capacidad: "10 personas"
-        },
-        2: {
-            nombre: "Sala 2",
-            equipo: "Pantalla táctil, Sonido surround",
-            capacidad: "8 personas"
-        },
-        3: {
-            nombre: "Sala 3",
-            equipo: "Computadora, Cámara para videollamada",
-            capacidad: "6 personas"
+    function mostrarMensajeError(mensaje) {
+        var mensajeError = document.getElementById('mensajeError');
+        mensajeError.innerHTML = mensaje;
+        mensajeError.style.display = "block";  // Mostrar el mensaje
+    }
+
+    function ocultarMensajeError() {
+        var mensajeError = document.getElementById('mensajeError');
+        mensajeError.style.display = "none";  // Ocultar el mensaje
+    }
+
+    function validarFormulario() {
+        // Limpiar cualquier mensaje de error previo
+        ocultarMensajeError();
+
+        // Obtener los valores de los campos
+        var evento = document.getElementById('evento').value;
+        var comentarios = document.getElementById('comentarios').value;
+        var fecha = document.getElementById('fechaReservacion').value;
+        var horaInicio = document.getElementById('horaInicio').value;
+        var horaFin = document.getElementById('horaFin').value;
+        var sala = document.getElementById('salaJuntas').value;
+        var numPersonas = document.getElementById('numPersonas').value;
+
+        // Validar que todos los campos sean completados
+        if (!evento || !fecha || !horaInicio || !horaFin || !sala || !numPersonas) {
+            mostrarMensajeError("Por favor, complete todos los campos.");
+            return false;
         }
-    };
 
+        // Validar que la hora de fin no sea antes de la hora de inicio
+        if (horaFin <= horaInicio) {
+            mostrarMensajeError("La hora de finalización debe ser posterior a la hora de inicio.");
+            return false;
+        }
+
+        // Validar que el número de personas sea mayor que 0 y no exceda 50
+        if (numPersonas <= 0 || numPersonas > 50) {
+            mostrarMensajeError("El número de personas debe ser mayor que 0 y no exceder las 50 personas.");
+            return false;
+        }
+
+        // Validar que no se pueda hacer reservación para sábado ni domingo
+        var fechaReservacion = new Date(fecha);
+        var diaSemana = fechaReservacion.getDay(); // 0 = domingo, 1 = lunes, ..., 6 = sábado
+        if (diaSemana === 0 || diaSemana === 6) {
+            mostrarMensajeError("No se pueden realizar reservaciones para sábado ni domingo.");
+            return false;
+        }
+
+        // Validar que las horas estén dentro del rango de 8 AM a 8 PM
+        var horaInicioObj = new Date("1970-01-01T" + horaInicio + "Z");
+        var horaFinObj = new Date("1970-01-01T" + horaFin + "Z");
+
+        var horaMinima = new Date("1970-01-01T08:00:00Z"); // 8:00 AM
+        var horaMaxima = new Date("1970-01-01T20:00:00Z"); // 8:00 PM
+
+        if (horaInicioObj < horaMinima || horaFinObj > horaMaxima) {
+            mostrarMensajeError("Las horas de reservación deben estar entre las 8:00 AM y las 8:00 PM.");
+            return false;
+        }
+
+        // Validar que no se pueda reservar en una fecha pasada o el mismo día
+        var hoy = new Date();
+        var fechaHoy = hoy.toISOString().split('T')[0]; // Solo la fecha (YYYY-MM-DD)
+
+        // Calcular la fecha mínima (al menos un día de anticipación)
+        var fechaMinima = new Date(hoy);
+        fechaMinima.setDate(hoy.getDate() + 1); // Un día de anticipación
+        var fechaMinimaStr = fechaMinima.toISOString().split('T')[0]; // Solo la fecha (YYYY-MM-DD)
+
+        // Verificar que la fecha no sea menor que la fecha mínima (al menos un día de anticipación)
+        if (fecha < fechaHoy) {
+            mostrarMensajeError("La fecha seleccionada ya ha pasado. Por favor, elige una fecha futura.");
+            return false;
+        }
+
+        // Verificar que no se pueda reservar en el mismo día
+        if (fecha === fechaHoy) {
+            mostrarMensajeError("No se pueden realizar reservaciones para el mismo día. Por favor, selecciona una fecha futura.");
+            return false;
+        }
+
+        // Verificar que la fecha no sea menor que la fecha mínima (al menos un día de anticipación)
+        if (fecha < fechaMinimaStr) {
+            mostrarMensajeError("Las reservaciones deben hacerse con al menos un día de anticipación. Por favor, selecciona una fecha válida.");
+            return false;
+        }
+
+        // Si pasa todas las validaciones, ocultamos el mensaje de error
+        ocultarMensajeError();
+
+        // Si todo está bien, el formulario se enviará
+        return true;
+    }
+
+    // Función para mostrar los detalles de la sala de juntas seleccionada
     function mostrarDetallesSala() {
-        const salaSeleccionada = document.getElementById('salaJuntas').value;
-        const contenidoDiv = document.getElementById('detallesSalaContenido');
+        var salaSelect = document.getElementById("salaJuntas");
+        var salaSeleccionada = salaSelect.options[salaSelect.selectedIndex];
+        var capacidad = salaSeleccionada.getAttribute("data-capacidad");
+        var equipo = salaSeleccionada.getAttribute("data-equipo");
+        var detallesContenido = document.getElementById("detallesSalaContenido");
 
-        if (salasInfo[salaSeleccionada]) {
-            const sala = salasInfo[salaSeleccionada];
-            contenidoDiv.innerHTML = `
-                <p style="margin: 2px 0;"><strong>Nombre:</strong> ${sala.nombre}</p>
-                <p style="margin: 2px 0;"><strong>Equipo:</strong> ${sala.equipo}</p>
-                <p style="margin: 2px 0;"><strong>Capacidad:</strong> ${sala.capacidad}</p>
+        // Mostrar detalles de la sala
+        if (salaSeleccionada.value != "") {
+            detallesContenido.innerHTML = `
+                <strong>Capacidad:</strong> ${capacidad} personas<br>
+                <strong>Equipo disponible:</strong> ${equipo}
             `;
         } else {
-            contenidoDiv.innerHTML = `<em>Selecciona una sala para ver los detalles</em>`;
+            detallesContenido.innerHTML = "<em>Selecciona una sala para ver los detalles</em>";
         }
     }
 </script>

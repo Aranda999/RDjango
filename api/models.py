@@ -12,24 +12,7 @@ class HomePermission(models.Model):
 
 
 #TABLAS DE BD
-
-# Tabla: Personas (Empleados)
-class Empleado(models.Model):
-    empleado_id = models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=100)
-    apellido_paterno = models.CharField(max_length=100)
-    apellido_materno = models.CharField(max_length=100)
-    numero_empleado = models.CharField(max_length=20, unique=True)
-    usuario = models.OneToOneField(User, on_delete=models.CASCADE)
-
-    class Meta:
-        db_table = 'empleados'
-
-    def __str__(self):
-        return f"{self.nombre} {self.apellido_paterno}"
-
-
-# Tabla: Áreas (con clave primaria manual)
+# Tabla: Áreas (con clave primaria manual)#
 class Area(models.Model):
     id_area = models.CharField(
         primary_key=True,
@@ -45,13 +28,25 @@ class Area(models.Model):
         return f"{self.id_area} - {self.nombre}"
 
 
+# Modificación en la clase Empleado
+class Empleado(models.Model):
+    empleado_id = models.AutoField(primary_key=True)
+    nombre = models.CharField(max_length=100)
+    apellido_paterno = models.CharField(max_length=100)
+    apellido_materno = models.CharField(max_length=100)
+    numero_empleado = models.CharField(max_length=20, unique=True)
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE)
+    id_area = models.ForeignKey(Area, on_delete=models.CASCADE)  # Agregado: clave foránea de área
+
+    class Meta:
+        db_table = 'empleados'
+
+    def __str__(self):
+        return f"{self.nombre} {self.apellido_paterno}"
+
 # Tabla: Salas de Juntas (con ID manual)
 class SalaJuntas(models.Model):
-    id_sala = models.CharField(
-        primary_key=True,
-        max_length=10,
-        verbose_name="ID de Sala (abreviatura)"
-    )
+    id_sala = models.AutoField(primary_key=True, verbose_name="ID de Sala")
     nombre = models.CharField(max_length=100)
     equipo = models.TextField()
     capacidad = models.PositiveIntegerField()
@@ -62,12 +57,12 @@ class SalaJuntas(models.Model):
     def __str__(self):
         return f"{self.id_sala} - {self.nombre}"
 
-
-# Tabla: Invitados externos (solo nombre y correo)
+# Tabla: Invitados externos (con relación a un área)
 class Invitado(models.Model):
     id_invitado = models.AutoField(primary_key=True)
     nombre_completo = models.CharField(max_length=200)
     correo = models.EmailField()
+    id_area = models.ForeignKey('Area', on_delete=models.CASCADE)  # Agregado: clave foránea de área
 
     class Meta:
         db_table = 'invitados'
@@ -75,12 +70,11 @@ class Invitado(models.Model):
     def __str__(self):
         return self.nombre_completo
 
-
-# Tabla: Reservaciones
+# Modificación en la clase Reservacion
 class Reservacion(models.Model):
     id_reservacion = models.AutoField(primary_key=True)
     evento = models.CharField(max_length=200)
-    area = models.ForeignKey(Area, on_delete=models.CASCADE)
+
     comentarios = models.TextField(blank=True)
     fecha = models.DateField()
     hora_inicio = models.TimeField()
@@ -93,3 +87,6 @@ class Reservacion(models.Model):
 
     def __str__(self):
         return f"Reservación: {self.evento} - {self.fecha}"
+
+
+

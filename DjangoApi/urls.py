@@ -24,7 +24,7 @@ from api.log.login_view import Login
 from api.log.login_view import Logout
 from api.security.security_view import Password
 from api.security.security_view import reset_password
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required 
 
 admin.site.login_url = reverse_lazy('login')
 
