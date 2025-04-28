@@ -2,8 +2,11 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
-from django.http import JsonResponse
-from api.models import Reservacion, SalaJuntas
+from django.contrib.auth import update_session_auth_hash, logout
+from django.contrib import messages
+from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
+
 
 
 @login_required (login_url= 'login')
@@ -13,56 +16,33 @@ def Home(request):
         return render(request, template_name=template_view)
     else:
         return redirect("homeuser")
-    
-
 
 @login_required
 def HomeUser(request):
-    template_view = "home-user.html"
-
-    # Obtener las salas de juntas
-    salas = SalaJuntas.objects.all()
-
-    # Procesar la creación de la reservación
     if request.method == 'POST':
-        evento = request.POST.get('evento')
-        comentarios = request.POST.get('comentarios')
-        fecha = request.POST.get('fechaReservacion')
-        hora_inicio = request.POST.get('horaInicio')
-        hora_fin = request.POST.get('horaFin')
-        sala_id = request.POST.get('salaJuntas')
-        num_personas = request.POST.get('numPersonas')
-        
-        # Validación de campos requeridos
-        if not evento or not fecha or not hora_inicio or not hora_fin or not sala_id or not num_personas:
-            messages.error(request, "Por favor, complete todos los campos.")
-            return redirect('homeuser')
+        nueva_contrasena = request.POST.get('nuevaContrasena')
+        confirmar_contrasena = request.POST.get('confirmarContrasena')
 
-        try:
-            # Obtener la sala seleccionada
-            sala = SalaJuntas.objects.get(id_sala=sala_id)
+        # Verificar si las contraseñas coinciden
+        if nueva_contrasena != confirmar_contrasena:
+            # Mensaje de error que se mostrará en el modal
+            messages.error(request, "Las contraseñas no coinciden.")
+            return render(request, 'home-user.html')  # Mantener el modal abierto
 
-            # Crear la nueva reservación
-            nueva_reservacion = Reservacion.objects.create(
-                evento=evento,
-                comentarios=comentarios,
-                fecha=fecha,
-                hora_inicio=hora_inicio,
-                hora_final=hora_fin,
-                sala=sala
-            )
+        # Si las contraseñas coinciden, cambiar la contraseña del usuario
+        user = request.user
+        user.set_password(nueva_contrasena)
+        user.save()
 
-            # Mostrar un mensaje de éxito
-            messages.success(request, "¡Reservación creada con éxito!")
+        # Actualizar la sesión para que no se cierre después de cambiar la contraseña
+        update_session_auth_hash(request, user)
 
-        except SalaJuntas.DoesNotExist:
-            messages.error(request, "La sala seleccionada no existe.")
+        # Cerrar sesión del usuario
+        logout(request)
 
-        return redirect('homeuser')  # Redirige a la página de inicio después de la reservación
+        # Mensaje de éxito y redirigir al login
+        messages.success(request, "Contraseña cambiada exitosamente. Por favor, vuelve a iniciar sesión.")
+        return redirect('login')  # Redirige al login después de cerrar sesión
 
-    # Pasar las salas al contexto
-    context = {
-        'salas': salas,
-    }
-
-    return render(request, template_name=template_view, context=context)
+    # Si no es un POST, solo se muestra el formulario
+    return render(request, 'home-user.html')
