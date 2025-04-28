@@ -20,6 +20,7 @@ from django.urls import path, reverse_lazy
 from django.urls import path
 from api.home.home_view import Home
 from api.home.home_view import HomeUser
+from api.home.home_view import Reservation
 from api.log.login_view import Login
 from api.log.login_view import Logout
 from api.security.security_view import Password
@@ -35,6 +36,7 @@ urlpatterns = [
     path('home/',Home, name= "home"),
     path('homeuser/',HomeUser, name= "homeuser"),
     path('password/',Password, name= "password"),
+    path('reservation/',Reservation, name= "reservation"),
     path('reset-password/<uidb64>/<token>/', reset_password, name='reset_password'),
 ]
 
