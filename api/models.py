@@ -74,12 +74,12 @@ class Invitado(models.Model):
 class Reservacion(models.Model):
     id_reservacion = models.AutoField(primary_key=True)
     evento = models.CharField(max_length=200)
-
     comentarios = models.TextField(blank=True)
     fecha = models.DateField()
     hora_inicio = models.TimeField()
     hora_final = models.TimeField()
     sala = models.ForeignKey(SalaJuntas, on_delete=models.CASCADE)
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)  # Agregar este campo
     invitados = models.ManyToManyField(Invitado, blank=True)
 
     class Meta:

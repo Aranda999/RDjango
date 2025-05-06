@@ -21,6 +21,7 @@ from django.urls import path
 from api.home.home_view import Home
 from api.home.home_view import HomeUser
 from api.home.home_view import Reservation
+from api.home.home_view import get_ocupados
 from api.log.login_view import Login
 from api.log.login_view import Logout
 from api.security.security_view import Password
@@ -38,6 +39,7 @@ urlpatterns = [
     path('password/',Password, name= "password"),
     path('reservation/',Reservation, name= "reservation"),
     path('reset-password/<uidb64>/<token>/', reset_password, name='reset_password'),
+    path('get_ocupados/', get_ocupados, name='get_ocupados'),
 ]
 
 

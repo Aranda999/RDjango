@@ -47,11 +47,57 @@
             </a>
             
             <p>Usuario: {{ request.user.username }}</p>
+
+            <div class="filtros-container">
+                <form method="get">
+                    <div class="filtros-form">
+                        <div class="form-group">
+                            {{ myFilter.form.fecha.label_tag }} 
+                            <span class="short-field">{{ myFilter.form.fecha }}</span>
+                        </div>
+                        <div class="form-group">
+                            {{ myFilter.form.sala.label_tag }} 
+                            <span class="short-field sala-field">{{ myFilter.form.sala }}</span>
+                        </div>
+                        <div class="form-group evento-field">
+                            {{ myFilter.form.evento.label_tag }} {{ myFilter.form.evento }}
+                        </div>
+                        <button type="submit" class="btn btn-primary">Filtrar</button>
+                    </div>
+                </form>
+            </div>
         
             <!-- Separación con título -->
             <div class="reservaciones-seccion container text-center mt-5">
-                <h1 style="font-weight: bold; color: black; font-size: 18px;">Mis reservaciones</h1>
+                <h1 style="font-weight: bold; color: black; font-size: 16px; position:relative;  top: 10px;">Mis reservaciones</h1>
                 <hr class="my-4" style="border-top: 2px solid #333;">
+                
+                {% if reservaciones %}
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Evento</th>
+                                <th>Sala de Juntas</th>
+                                <th>Fecha</th>
+                                <th>Hora Inicio</th>
+                                <th>Hora Final</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reservacion in reservaciones %}
+                                <tr>
+                                    <td>{{ reservacion.evento }}</td>
+                                    <td>{{ reservacion.sala.nombre }}</td>
+                                    <td>{{ reservacion.fecha }}</td>
+                                    <td>{{ reservacion.hora_inicio }}</td>
+                                    <td>{{ reservacion.hora_final }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>No tienes reservaciones registradas.</p>
+                {% endif %}
             </div>
             {% if messages %}
                 <div class="alert alert-success" role="alert">
@@ -96,7 +142,7 @@
                                     <div class="mb-2">
                                         <label class="form-label fw-bold" style="color: black;">SALA DE JUNTAS</label>
                                         <select class="form-select form-select-sm" id="salaJuntas" name="salaJuntas" style="border: 1px solid black; width: 100%;" required>
-                                            <option selected disabled>Seleccione</option>
+                                            <option selected disabled value="">Seleccione</option>
                                             {% for sala in salas %}
                                                 <option value="{{ sala.id_sala }}" data-equipo="{{ sala.equipo }}" data-capacidad="{{ sala.capacidad }}">{{ sala.nombre }}</option>
                                             {% endfor %}
@@ -124,7 +170,6 @@
                                 </div>
                             </div>
 
-                            <!-- Hora de inicio y fin en la misma fila -->
                             <div class="row mb-2">
                                 <div class="col-6">
                                     <label class="form-label fw-bold" style="color: black;">HORA DE INICIO</label>
@@ -135,7 +180,9 @@
                                     <input type="time" class="form-control form-control-sm" id="horaFinal" name="horaFinal" style="border: 1px solid black;" required>
                                 </div>
                             </div>
-                            <!-- Botón reservar -->
+
+                            <div id="horarios-ocupados" style="color: red; text-align: center;"></div>
+
                             <button type="submit" class="btn" style="background-color: #ff6200; color: black; width: 50%; margin: 15px auto 0 auto; display: block; padding: 10px; border: 1px solid black; border-radius: 5px;">
                                 Reservar
                             </button>
@@ -147,7 +194,6 @@
 
 
         <script>
-            // Función para actualizar el campo de equipo basado en la sala seleccionada
             document.getElementById("salaJuntas").addEventListener("change", function() {
                 var selectedOption = this.options[this.selectedIndex]; // Obtener la opción seleccionada
                 var equipo = selectedOption.getAttribute("data-equipo"); // Obtener el equipo de la sala seleccionada
@@ -160,9 +206,150 @@
                 var equipoTextarea = document.getElementById("equipo");
                 equipoTextarea.style.height = 'auto'; // Resetear altura
                 equipoTextarea.style.height = equipoTextarea.scrollHeight + 'px'; // Ajustar la altura según el contenido
-            }); 
+            });
+
+            $('#reservacion-form').submit(function(e) {
+                var salaJuntas = $('#salaJuntas').val();
+                if (salaJuntas === null || salaJuntas === '') {
+                    e.preventDefault();
+                    alert('Debes seleccionar una sala de juntas');
+                }
+            });
         </script>
 
+        <script>
+            function calcularDiferenciaDias(fecha1, fecha2) {
+                return (fecha1 - fecha2) / (1000 * 3600 * 24);
+            }
+
+            function validarHorario(hora, horaMin, horaMax) {
+                var horaSeleccionada = parseInt(hora.substring(0, 2)) * 60 + parseInt(hora.substring(3));
+                return horaSeleccionada >= horaMin && horaSeleccionada <= horaMax;
+            }
+
+            $('#fechaReservacion').on('change', function() {
+                var fecha = $(this).val();
+                var diaSemana = new Date(fecha).getDay();
+                if (diaSemana === 5 || diaSemana === 6) {
+                    alert('Solo se puede reservar de lunes a viernes');
+                    $(this).val('');
+                }
+
+                var fechaSeleccionada = new Date(fecha);
+                var fechaActual = new Date();
+                var diferenciaDias = calcularDiferenciaDias(fechaSeleccionada, fechaActual);
+                if (diferenciaDias <= 0) {
+                    alert('No se puede reservar el día actual o días anteriores');
+                    $(this).val('');
+                } else if (diferenciaDias > 7) {
+                    alert('Solo se puede reservar con un máximo de 8 días de anticipación');
+                    $(this).val('');
+                }
+            });
+
+            $('#horaInicio').on('input', function() {
+                var hora = $(this).val();
+                var horaMin = 8 * 60;
+                var horaMax = 20 * 60;
+                if (!validarHorario(hora, horaMin, horaMax)) {
+                    alert('El horario de reserva es de 8:00 am a 8:00 pm');
+                    $(this).val('');
+                }
+            });
+
+            $('#horaFinal').on('input', function() {
+                var hora = $(this).val();
+                var horaMin = 8 * 60;
+                var horaMax = 20 * 60;
+                if (!validarHorario(hora, horaMin, horaMax)) {
+                    alert('El horario de reserva es de 8:00 am a 8:00 pm');
+                    $(this).val('');
+                }
+
+                var horaInicio = $('#horaInicio').val();
+                if ($(this).val() <= horaInicio) {
+                    alert('La hora de finalización debe ser mayor a la hora de inicio');
+                    $(this).val('');
+                }
+            });
+
+        </script>
+
+
+                
+        <script>
+            $(document).ready(function() {
+                var horariosOcupados = [];
+
+                function getHorariosOcupados() {
+                    var sala_id = $('#salaJuntas').val();
+                    var fecha = $('#fechaReservacion').val();
+
+                    if (sala_id && fecha) {
+                        $.ajax({
+                            type: 'GET',
+                            url: '{% url "get_ocupados" %}',
+                            data: {
+                                'sala_id': sala_id,
+                                'fecha': fecha
+                            },
+                            success: function(data) {
+                                horariosOcupados = data;
+                                mostrarHorariosOcupados();
+                            }
+                        });
+                    }
+                }
+
+                function mostrarHorariosOcupados() {
+                    var horariosOcupadosHtml = '';
+                    $.each(horariosOcupados, function(index, value) {
+                        horariosOcupadosHtml += '<p> Ocupado: ' + value.hora_inicio + ' - ' + value.hora_final + '</p>';
+                    });
+                    $('#horarios-ocupados').html(horariosOcupadosHtml);
+                }
+
+                $('#salaJuntas, #fechaReservacion').change(function() {
+                    getHorariosOcupados();
+                });
+
+                $('#horaInicio').on('input', function() {
+                    var horaInicio = $(this).val();
+                    var estaOcupado = false;
+
+                    $.each(horariosOcupados, function(index, value) {
+                        if (horaInicio >= value.hora_inicio && horaInicio < value.hora_final) {
+                            estaOcupado = true;
+                            return false;
+                        }
+                    });
+
+                    if (estaOcupado) {
+                        $(this).css('background-color', 'rgba(255, 0, 0, 0.5)');
+                    } else {
+                        $(this).css('background-color', 'rgba(0, 128, 0, 0.5)');
+                    }
+                });
+
+                $('#horaFinal').on('input', function() {
+                    var horaFinal = $(this).val();
+                    var estaOcupado = false;
+
+                    $.each(horariosOcupados, function(index, value) {
+                        if (horaFinal > value.hora_inicio && horaFinal <= value.hora_final) {
+                            estaOcupado = true;
+                            return false;
+                        }
+                    });
+
+                    if (estaOcupado) {
+                        $(this).css('background-color', 'rgba(255, 0, 0, 0.5)');
+                    } else {
+                        $(this).css('background-color', 'rgba(0, 128, 0, 0.5)');
+                    }
+                });
+            });
+        </script>
         
         
 
@@ -182,8 +369,8 @@
             }
 
             .LoginContainer {
-                width: 620px;
-                height: 500px;
+                width: 660px;
+                height: 540px;
                 margin: 40px auto;
                 margin-top: 100px;
                 background-color: #fff;
@@ -295,8 +482,51 @@
             .add-reservation-icon:hover {
                 color:rgb(0, 0, 0);
             }
-            
 
+            .filtros-form {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                margin-left: 60px;
+            }
+
+            .form-group {
+                margin-right: 30px;
+                position: relative;
+                top: 35px;
+            }
+
+            .form-group label {
+                font-size: 12px;
+            }
+
+            .short-field input, .short-field select, .evento-field input {
+                height: 22px;
+                font-size: 14px;
+            }
+
+            .short-field input {
+                width: 100px;
+            }
+
+            .sala-field select {
+                width: 130px;
+            }
+
+            .evento-field input {
+                width: 180px;
+            }
+
+            .evento-field {
+                margin-right: 10px; /* ajusta este valor según tus necesidades */
+            }
+
+            .btn-primary {
+                font-size: 10px;
+                position: relative;
+                top: 46px;
+                margin-right: 50px;
+            }                      
             /* Media query para dispositivos más pequeños */
             @media (max-width: 370px) {
                 .imagen-principal {
@@ -310,6 +540,22 @@
             // Ocultar el spinner cuando la página haya terminado de cargar
             window.addEventListener('load', function() {
                 document.getElementById('spinner').style.display = 'none';
+            });
+            $('#reservacionModal').on('hidden.bs.modal', function() {
+                $(this).find('input, textarea').val('');
+                $(this).find('select').prop('selectedIndex', 0);
+            });
+            var myModal = document.getElementById('reservacionModal')
+            myModal.addEventListener('hidden.bs.modal', function () {
+                // Limpiar los campos del formulario
+                document.getElementById('evento').value = '';
+                document.getElementById('comentarios').value = '';
+                document.getElementById('salaJuntas').selectedIndex = 0;
+                document.getElementById('equipo').value = '';
+                document.getElementById('fechaReservacion').value = '';
+                document.getElementById('num_personas').value = '';
+                document.getElementById('horaInicio').value = '';
+                document.getElementById('horaFinal').value = '';
             });
         </script>
 

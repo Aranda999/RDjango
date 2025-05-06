@@ -7,7 +7,7 @@ from api.models import SalaJuntas, Reservacion
 from django.http import JsonResponse
 from datetime import datetime
 import json
-
+from api.filters import ReservacionFilter
 
 @login_required (login_url= 'login')
 def Home(request):
@@ -49,30 +49,28 @@ def HomeUser(request):
 
 @login_required
 def Reservation(request):
+    reservaciones = Reservacion.objects.filter(usuario=request.user)
+    myFilter = ReservacionFilter(request.GET, queryset=reservaciones)
+    reservaciones = myFilter.qs
     salas = SalaJuntas.objects.all()
 
     if request.method == 'POST':
         # Obtener los datos del formulario
         fecha_reservacion = request.POST.get('fechaReservacion')
-        hora_inicio = request.POST.get('horaInicio')
-        hora_final = request.POST.get('horaFinal')
+        hora_inicio_str = request.POST.get('horaInicio')
+        hora_final_str = request.POST.get('horaFinal')
         sala_id = request.POST.get('salaJuntas')
         evento = request.POST.get('evento')
         comentarios = request.POST.get('comentarios', '')
 
         try:
-            sala = SalaJuntas.objects.get(id_sala=sala_id)
-        except SalaJuntas.DoesNotExist:
-            messages.error(request, "Sala de juntas no encontrada.")
-            return render(request, "reservation.html", {'salas': salas})
+            hora_inicio = datetime.strptime(hora_inicio_str, '%H:%M').time()
+            hora_final = datetime.strptime(hora_final_str, '%H:%M').time()
+        except ValueError:
+            # Esta validación ya se realiza en el lado del cliente
+            pass
 
-        # Verificar si la nueva reserva se superpone con una ya existente
-        reservas = Reservacion.objects.filter(sala=sala, fecha=fecha_reservacion)
-        for reserva in reservas:
-            # Comprobar si hay superposición de horarios
-            if (hora_inicio < reserva.hora_final and hora_final > reserva.hora_inicio):
-                messages.error(request, f"El horario seleccionado ya está reservado para la sala '{sala.nombre}'.")
-                return render(request, "reservation.html", {'salas': salas})
+        sala = SalaJuntas.objects.get(id_sala=sala_id)
 
         # Guardar la nueva reservación
         Reservacion.objects.create(
@@ -82,10 +80,22 @@ def Reservation(request):
             hora_inicio=hora_inicio,
             hora_final=hora_final,
             sala=sala,
+            usuario=request.user  # Agregar el usuario que hace la reservación
         )
 
         messages.success(request, f"Reservación realizada con éxito para '{evento}'.")
         return redirect('reservation')
 
-    return render(request, "reservation.html", {'salas': salas})
+    return render(request, "reservation.html", {'salas': salas, 'reservaciones': reservaciones, 'myFilter': myFilter})
+    
+def get_ocupados(request):
+    sala_id = request.GET.get('sala_id')
+    fecha = request.GET.get('fecha')
 
+    ocupados = Reservacion.objects.filter(sala_id=sala_id, fecha=fecha).values('hora_inicio', 'hora_final')
+
+    return JsonResponse(list(ocupados), safe=False)
+
+def mostrar_reservaciones(request):
+    reservaciones = Reservacion.objects.filter(usuario=request.user)
+    return render(request, 'reservaciones.html', {'reservaciones': reservaciones})

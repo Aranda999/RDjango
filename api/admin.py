@@ -1,4 +1,3 @@
-# admin.py
 from django.contrib import admin
 from .models import Area, Empleado, SalaJuntas, Invitado, Reservacion
 
@@ -37,8 +36,6 @@ class InvitadoAdmin(admin.ModelAdmin):
 # Personalizando la vista de administración para el modelo Reservacion
 @admin.register(Reservacion)
 class ReservacionAdmin(admin.ModelAdmin):
-    list_display = ('id_reservacion', 'evento', 'fecha', 'hora_inicio', 'hora_final', 'sala')
-    search_fields = ('evento',)
-    list_filter = ('fecha', 'sala')  # Filtrar por fecha y sala
-    ordering = ('fecha', 'hora_inicio')  # Ordenar por fecha y hora de inicio
-    filter_horizontal = ('invitados',)  # Mejora la interfaz para seleccionar invitados (para ManyToManyField)
+    list_display = ('evento', 'fecha', 'hora_inicio', 'hora_final', 'sala', 'usuario')
+    search_fields = ('evento', 'fecha')
+    list_filter = ('fecha', 'sala')
