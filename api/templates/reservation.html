@@ -1,569 +1,624 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
-    <head>
-        <meta charset="utf-8">
-        <meta content="width=device-width, initial-scale=1.0" name="viewport">
-        <meta content="" name="keywords">
-        <meta content="" name="description">
-        <title>HOME</title>
-        <link rel="icon" type="image/jpg" href="{% static 'img/footer.jpg' %}">
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
-        <!-- Customized Bootstrap Stylesheet -->
-        <link href="{% static 'css/bootstrap.min.css'%}" rel="stylesheet">
-        <!-- Template Stylesheet -->
-        <link href="{% static 'css/style.css'%}" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
-        <!-- FullCalendar CSS y JS -->
-        <link href="https://cdn.jsdelivr.net/npm/fullcalendar@3.2.0/dist/fullcalendar.min.css" rel="stylesheet" />
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/fullcalendar@3.2.0/dist/fullcalendar.min.js"></script>
 
-    </head>
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="" name="keywords">
+    <meta content="" name="description">
+    <title>HOME</title>
+    <link rel="icon" type="image/jpg" href="{% static 'img/footer.jpg' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="{% static 'css/bootstrap.min.css'%}" rel="stylesheet">
+    <!-- Template Stylesheet -->
+    <link href="{% static 'css/style.css'%}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+    <!-- FullCalendar CSS y JS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@3.2.0/dist/fullcalendar.min.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@3.2.0/dist/fullcalendar.min.js"></script>
 
-    <body>
-        <div id="spinner" class="show position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
-            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-                <span class="sr-only">Loading...</span>
-            </div>
+</head>
+
+<body>
+    <div id="spinner"
+        class="show position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+            <span class="sr-only">Loading...</span>
         </div>
-        <img src="{% static 'img/FondoWindow1.jpg' %}" class="imagen-principal" 
+    </div>
+    <img src="{% static 'img/FondoWindow1.jpg' %}" class="imagen-principal" alt="Imagen de fondo principal"
         style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; object-position: center; margin: 0; padding: 0; z-index: -1;">
 
-        <div class="LoginContainer">
-            <div class="Logos">
-                <img src="{% static 'img/IconCdmx.png' %}" alt="Logo 1" class="logo-1">
-                <img src="{% static 'img/IconMetro.webp' %}" alt="Logo 2" class="logo-2">
-            </div>
-            
-            <!-- Icono para agregar reservación -->
-            <a href="#" title="Agregar reservación" class="add-reservation-icon" data-bs-toggle="modal" data-bs-target="#reservacionModal">
-                <i class="bi bi-calendar-plus-fill"></i>
-            </a>
-            <a href="{% url 'homeuser' %}" style="text-decoration: underline; color: black; position: absolute; top: 90px; right: 430px;">
-                <i class="fa-solid fa-right-from-bracket"></i> 
-                Home
-            </a>
-            
-            <p>Usuario: {{ request.user.username }}</p>
-
-            <div class="filtros-container">
-                <form method="get">
-                    <div class="filtros-form">
-                        <div class="form-group">
-                            {{ myFilter.form.fecha.label_tag }} 
-                            <span class="short-field">{{ myFilter.form.fecha }}</span>
-                        </div>
-                        <div class="form-group">
-                            {{ myFilter.form.sala.label_tag }} 
-                            <span class="short-field sala-field">{{ myFilter.form.sala }}</span>
-                        </div>
-                        <div class="form-group evento-field">
-                            {{ myFilter.form.evento.label_tag }} {{ myFilter.form.evento }}
-                        </div>
-                        <button type="submit" class="btn btn-primary">Filtrar</button>
-                    </div>
-                </form>
-            </div>
-        
-            <!-- Separación con título -->
-            <div class="reservaciones-seccion container text-center mt-5">
-                <h1 style="font-weight: bold; color: black; font-size: 16px; position:relative;  top: 10px;">Mis reservaciones</h1>
-                <hr class="my-4" style="border-top: 2px solid #333;">
-                
-                {% if reservaciones %}
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Evento</th>
-                                <th>Sala de Juntas</th>
-                                <th>Fecha</th>
-                                <th>Hora Inicio</th>
-                                <th>Hora Final</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for reservacion in reservaciones %}
-                                <tr>
-                                    <td>{{ reservacion.evento }}</td>
-                                    <td>{{ reservacion.sala.nombre }}</td>
-                                    <td>{{ reservacion.fecha }}</td>
-                                    <td>{{ reservacion.hora_inicio }}</td>
-                                    <td>{{ reservacion.hora_final }}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                {% else %}
-                    <p>No tienes reservaciones registradas.</p>
-                {% endif %}
-            </div>
-            {% if messages %}
-                <div class="alert alert-success" role="alert">
-                    {% for message in messages %}
-                        <p>{{ message }}</p>
-                    {% endfor %}
-                </div>
-            {% endif %}
+    <div class="LoginContainer">
+        <div class="Logos">
+            <img src="{% static 'img/IconCdmx.png' %}" alt="Logo 1" class="logo-1">
+            <img src="{% static 'img/IconMetro.webp' %}" alt="Logo 2" class="logo-2">
         </div>
 
-        <form method="POST" action="{% url 'reservation' %}" onsubmit="return validarFormulario()">
-            {% csrf_token %}
-            
-            <div class="modal fade" id="reservacionModal" tabindex="-1" aria-labelledby="reservacionModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content" style="border-radius: 15px;">
-                        <div class="modal-header" style="background-color: rgba(61, 50, 50, 0.77); border-top-left-radius: 13px; border-top-right-radius: 13px; height: 20px;">
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="background-color: transparent; border: none; padding: 0; font-size: 15px; margin-right: 3px;"></button>
+        <!-- Icono para agregar reservación -->
+        <a href="#" title="Agregar reservación" class="add-reservation-icon" data-bs-toggle="modal"
+            data-bs-target="#reservacionModal">
+            <i class="bi bi-calendar-plus-fill"></i>
+        </a>
+        <a href="{% url 'homeuser' %}"
+            style="text-decoration: underline; color: black; position: absolute; top: 90px; right: 430px;">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            Home
+        </a>
+
+        <p>Usuario: {{ request.user.username }}</p>
+
+        <div class="filtros-container">
+            <form method="get">
+                <div class="filtros-form">
+                    <div class="form-group">
+                        {{ myFilter.form.fecha.label_tag }}
+                        <span class="short-field">{{ myFilter.form.fecha }}</span>
+                    </div>
+                    <div class="form-group">
+                        {{ myFilter.form.sala.label_tag }}
+                        <span class="short-field sala-field">{{ myFilter.form.sala }}</span>
+                    </div>
+                    <div class="form-group evento-field">
+                        {{ myFilter.form.evento.label_tag }} {{ myFilter.form.evento }}
+                    </div>
+                    <button type="submit" class="btn btn-primary">Filtrar</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="reservaciones-seccion container text-center mt-2">
+            <h4 style="font-weight: bold; color: black;margin-top: 42px; font-size: 16px;">Mis Reservaciones</h4>
+            <hr style="border-top: 3px solid rgb(156, 34, 34); margin-bottom: 2px; margin-top: 2px; ">
+
+            {% if reservaciones %}
+            <div style="max-height: 250px; overflow-y: auto;">
+                <table class="table table-striped" style="table-layout: fixed;">
+                    <thead style="position: sticky; background-color: #fff;">
+                        <tr>
+                            <th style="border-bottom: 2px solid #333; width: 35%; padding: 5px;">Evento</th>
+                            <th style="border-bottom: 2px solid #333; width: 18%; padding: 5px;">Sala de Juntas</th>
+                            <th style="border-bottom: 2px solid #333; width: 15%; padding: 5px;">Fecha</th>
+                            <th style="border-bottom: 2px solid #333; width: 14%; padding: 5px;">Hora Inicio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reservacion in reservaciones %}
+                        <tr>
+                            <td style="word-break: break-word;">{{ reservacion.evento }}</td>
+                            <td>{{ reservacion.sala.nombre }}</td>
+                            <td>{{ reservacion.fecha }}</td>
+                            <td>{{ reservacion.hora_inicio }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p style="font-size: 14px;">No tienes reservaciones registradas.</p>
+            {% endif %}
+
+            {% if messages %}
+            <div class="alert alert-success mt-2" role="alert" style="font-size: 14px;">
+                {% for message in messages %}
+                <p>{{ message }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <form method="POST" action="{% url 'reservation' %}" onsubmit="return validarFormulario()">
+        {% csrf_token %}
+
+        <div class="modal fade" id="reservacionModal" tabindex="-1" aria-labelledby="reservacionModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content" style="border-radius: 15px;">
+                    <div class="modal-header"
+                        style="background-color: rgba(61, 50, 50, 0.77); border-top-left-radius: 13px; border-top-right-radius: 13px; height: 20px;">
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                            style="background-color: transparent; border: none; padding: 0; font-size: 15px; margin-right: 3px;"></button>
+                    </div>
+
+                    <h5 class="modal-title" id="reservacionModalLabel" style="margin-left: 15px; margin-top: 10px;">
+                        Metro CDMX</h5>
+
+                    <div class="modal-body">
+                        <!-- Evento -->
+                        <div class="mb-2">
+                            <label class="form-label fw-bold" style="color: black;">EVENTO</label>
+                            <input type="text" class="form-control form-control-sm" id="evento" name="evento"
+                                placeholder="Ingrese el evento" style="border: 1px solid black;" required>
                         </div>
-                        
-                        <h5 class="modal-title" id="reservacionModalLabel" style="margin-left: 15px; margin-top: 10px;">Metro CDMX</h5>
-                        
-                        <div class="modal-body">
-                            <!-- Evento -->
-                            <div class="mb-2">
-                                <label class="form-label fw-bold" style="color: black;">EVENTO</label>
-                                <input type="text" class="form-control form-control-sm" id="evento" name="evento"
-                                    placeholder="Ingrese el evento" style="border: 1px solid black;" required>
-                            </div>
-                            
-                            <!-- Comentarios -->
-                            <div class="mb-2">
-                                <label class="form-label fw-bold" style="color: black;">COMENTARIOS</label>
-                                <textarea class="form-control form-control-sm" id="comentarios" name="comentarios" rows="2"
-                                        placeholder="Ingrese sus comentarios" style="resize: none; border: 1px solid black;"></textarea>
-                                <p style="margin-bottom: 5px; font-size: 12px;">Max 15 palabras</p>
-                            </div>
-        
-                            <!-- Sala y Equipo -->
-                            <div class="row align-items-start">
-                                <div class="col-4">
-                                    <div class="mb-2">
-                                        <label class="form-label fw-bold" style="color: black;">SALA DE JUNTAS</label>
-                                        <select class="form-select form-select-sm" id="salaJuntas" name="salaJuntas" style="border: 1px solid black; width: 100%;" required>
-                                            <option selected disabled value="">Seleccione</option>
-                                            {% for sala in salas %}
-                                                <option value="{{ sala.id_sala }}" data-equipo="{{ sala.equipo }}" data-capacidad="{{ sala.capacidad }}">{{ sala.nombre }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-8">
-                                    <div class="mb-2">
-                                        <label class="form-label fw-bold" style="color: black;">EQUIPO</label>
-                                        <textarea class="form-control form-control-sm" id="equipo" name="equipo" readonly style="border: 1px solid black; width: 100%; height: 50px; resize: none;" placeholder="Selecciona una sala para ver el equipo"></textarea>
-                                    </div>
-                                </div>
-                            </div>
-    
-                            <div class="row mb-2">
-                                <div class="col-6">
-                                    <label class="form-label fw-bold" style="color: black;">FECHA DE RESERVA</label>
-                                    <input type="date" class="form-control form-control-sm" id="fechaReservacion" name="fechaReservacion" style="border: 1px solid black;" required>
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label fw-bold" style="color: black;">NÚMERO DE PERSONAS</label>
-                                    <input type="number" class="form-control form-control-sm" id="num_personas" name="num_personas"
-                                        placeholder="Número de personas" min="1" max="100"
-                                        style="border: 1px solid black;" required>
-                                </div>
-                            </div>
 
-                            <div class="row mb-2">
-                                <div class="col-6">
-                                    <label class="form-label fw-bold" style="color: black;">HORA DE INICIO</label>
-                                    <input type="time" class="form-control form-control-sm" id="horaInicio" name="horaInicio" style="border: 1px solid black;" required>
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label fw-bold" style="color: black;">HORA DE FIN</label>
-                                    <input type="time" class="form-control form-control-sm" id="horaFinal" name="horaFinal" style="border: 1px solid black;" required>
-                                </div>
-                            </div>
-
-                            <div id="horarios-ocupados" style="color: red; text-align: center;"></div>
-
-                            <button type="submit" class="btn" style="background-color: #ff6200; color: black; width: 50%; margin: 15px auto 0 auto; display: block; padding: 10px; border: 1px solid black; border-radius: 5px;">
-                                Reservar
-                            </button>
+                        <!-- Comentarios -->
+                        <div class="mb-2">
+                            <label class="form-label fw-bold" style="color: black;">COMENTARIOS</label>
+                            <textarea class="form-control form-control-sm" id="comentarios" name="comentarios" rows="2"
+                                placeholder="Ingrese sus comentarios"
+                                style="resize: none; border: 1px solid black;"></textarea>
+                            <p style="margin-bottom: 5px; font-size: 12px;">Max 15 palabras</p>
                         </div>
+
+                        <!-- Sala y Equipo -->
+                        <div class="row align-items-start">
+                            <div class="col-4">
+                                <div class="mb-2">
+                                    <label class="form-label fw-bold" style="color: black;">SALA DE JUNTAS</label>
+                                    <select class="form-select form-select-sm" id="salaJuntas" name="salaJuntas"
+                                        style="border: 1px solid black; width: 100%;" required>
+                                        <option selected disabled value="">Seleccione</option>
+                                        {% for sala in salas %}
+                                        <option value="{{ sala.id_sala }}" data-equipo="{{ sala.equipo }}"
+                                            data-capacidad="{{ sala.capacidad }}">{{ sala.nombre }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-8">
+                                <div class="mb-2">
+                                    <label class="form-label fw-bold" style="color: black;">EQUIPO</label>
+                                    <textarea class="form-control form-control-sm" id="equipo" name="equipo" readonly
+                                        style="border: 1px solid black; width: 100%; height: 50px; resize: none;"
+                                        placeholder="Selecciona una sala para ver el equipo"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <label class="form-label fw-bold" style="color: black;">FECHA DE RESERVA</label>
+                                <input type="date" class="form-control form-control-sm" id="fechaReservacion"
+                                    name="fechaReservacion" style="border: 1px solid black;" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold" style="color: black;">NÚMERO DE PERSONAS</label>
+                                <input type="number" class="form-control form-control-sm" id="num_personas"
+                                    name="num_personas" placeholder="Número de personas" min="1" max="100"
+                                    style="border: 1px solid black;" required>
+                            </div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <label class="form-label fw-bold" style="color: black;">HORA DE INICIO</label>
+                                <input type="time" class="form-control form-control-sm" id="horaInicio"
+                                    name="horaInicio" style="border: 1px solid black;" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold" style="color: black;">HORA DE FIN</label>
+                                <input type="time" class="form-control form-control-sm" id="horaFinal" name="horaFinal"
+                                    style="border: 1px solid black;" required>
+                            </div>
+                        </div>
+
+                        <div id="horarios-ocupados" style="color: red; text-align: center;"></div>
+
+                        <button type="submit" class="btn"
+                            style="background-color: #ff6200; color: black; width: 50%; margin: 15px auto 0 auto; display: block; padding: 10px; border: 1px solid black; border-radius: 5px;">
+                            Reservar
+                        </button>
                     </div>
                 </div>
             </div>
-        </form>
+        </div>
+    </form>
 
 
-        <script>
-            document.getElementById("salaJuntas").addEventListener("change", function() {
-                var selectedOption = this.options[this.selectedIndex]; // Obtener la opción seleccionada
-                var equipo = selectedOption.getAttribute("data-equipo"); // Obtener el equipo de la sala seleccionada
-                var capacidad = selectedOption.getAttribute("data-capacidad"); // Obtener la capacidad de la sala seleccionada
-                
-                // Mostrar el equipo en el campo correspondiente
-                document.getElementById("equipo").value = equipo + " (Capacidad: " + capacidad + " personas)";
-                
-                // Hacer que el tamaño del textarea se ajuste dependiendo del contenido
-                var equipoTextarea = document.getElementById("equipo");
-                equipoTextarea.style.height = 'auto'; // Resetear altura
-                equipoTextarea.style.height = equipoTextarea.scrollHeight + 'px'; // Ajustar la altura según el contenido
-            });
+    <script>
+        document.getElementById("salaJuntas").addEventListener("change", function () {
+            var selectedOption = this.options[this.selectedIndex]; // Obtener la opción seleccionada
+            var equipo = selectedOption.getAttribute("data-equipo"); // Obtener el equipo de la sala seleccionada
+            var capacidad = selectedOption.getAttribute("data-capacidad"); // Obtener la capacidad de la sala seleccionada
 
-            $('#reservacion-form').submit(function(e) {
-                var salaJuntas = $('#salaJuntas').val();
-                if (salaJuntas === null || salaJuntas === '') {
-                    e.preventDefault();
-                    alert('Debes seleccionar una sala de juntas');
-                }
-            });
-        </script>
+            // Mostrar el equipo en el campo correspondiente
+            document.getElementById("equipo").value = equipo + " (Capacidad: " + capacidad + " personas)";
 
-        <script>
-            function calcularDiferenciaDias(fecha1, fecha2) {
-                return (fecha1 - fecha2) / (1000 * 3600 * 24);
+            // Hacer que el tamaño del textarea se ajuste dependiendo del contenido
+            var equipoTextarea = document.getElementById("equipo");
+            equipoTextarea.style.height = 'auto'; // Resetear altura
+            equipoTextarea.style.height = equipoTextarea.scrollHeight + 'px'; // Ajustar la altura según el contenido
+        });
+
+        $('#reservacion-form').submit(function (e) {
+            var salaJuntas = $('#salaJuntas').val();
+            if (salaJuntas === null || salaJuntas === '') {
+                e.preventDefault();
+                alert('Debes seleccionar una sala de juntas');
+            }
+        });
+    </script>
+
+    <script>
+        function calcularDiferenciaDias(fecha1, fecha2) {
+            return (fecha1 - fecha2) / (1000 * 3600 * 24);
+        }
+
+        function validarHorario(hora, horaMin, horaMax) {
+            var horaSeleccionada = parseInt(hora.substring(0, 2)) * 60 + parseInt(hora.substring(3));
+            return horaSeleccionada >= horaMin && horaSeleccionada <= horaMax;
+        }
+
+        $('#fechaReservacion').on('change', function () {
+            var fecha = $(this).val();
+            var diaSemana = new Date(fecha).getDay();
+            if (diaSemana === 5 || diaSemana === 6) {
+                alert('Solo se puede reservar de lunes a viernes');
+                $(this).val('');
             }
 
-            function validarHorario(hora, horaMin, horaMax) {
-                var horaSeleccionada = parseInt(hora.substring(0, 2)) * 60 + parseInt(hora.substring(3));
-                return horaSeleccionada >= horaMin && horaSeleccionada <= horaMax;
+            var fechaSeleccionada = new Date(fecha);
+            var fechaActual = new Date();
+            var diferenciaDias = calcularDiferenciaDias(fechaSeleccionada, fechaActual);
+            if (diferenciaDias <= 0) {
+                alert('No se puede reservar el día actual o días anteriores');
+                $(this).val('');
+            } else if (diferenciaDias > 7) {
+                alert('Solo se puede reservar con un máximo de 8 días de anticipación');
+                $(this).val('');
+            }
+        });
+
+        $('#horaInicio').on('input', function () {
+            var hora = $(this).val();
+            var horaMin = 8 * 60;
+            var horaMax = 20 * 60;
+            if (!validarHorario(hora, horaMin, horaMax)) {
+                alert('El horario de reserva es de 8:00 am a 8:00 pm');
+                $(this).val('');
+            }
+        });
+
+        $('#horaFinal').on('input', function () {
+            var hora = $(this).val();
+            var horaMin = 8 * 60;
+            var horaMax = 20 * 60;
+            if (!validarHorario(hora, horaMin, horaMax)) {
+                alert('El horario de reserva es de 8:00 am a 8:00 pm');
+                $(this).val('');
             }
 
-            $('#fechaReservacion').on('change', function() {
-                var fecha = $(this).val();
-                var diaSemana = new Date(fecha).getDay();
-                if (diaSemana === 5 || diaSemana === 6) {
-                    alert('Solo se puede reservar de lunes a viernes');
-                    $(this).val('');
-                }
+            var horaInicio = $('#horaInicio').val();
+            if ($(this).val() <= horaInicio) {
+                alert('La hora de finalización debe ser mayor a la hora de inicio');
+                $(this).val('');
+            }
+        });
 
-                var fechaSeleccionada = new Date(fecha);
-                var fechaActual = new Date();
-                var diferenciaDias = calcularDiferenciaDias(fechaSeleccionada, fechaActual);
-                if (diferenciaDias <= 0) {
-                    alert('No se puede reservar el día actual o días anteriores');
-                    $(this).val('');
-                } else if (diferenciaDias > 7) {
-                    alert('Solo se puede reservar con un máximo de 8 días de anticipación');
-                    $(this).val('');
-                }
-            });
-
-            $('#horaInicio').on('input', function() {
-                var hora = $(this).val();
-                var horaMin = 8 * 60;
-                var horaMax = 20 * 60;
-                if (!validarHorario(hora, horaMin, horaMax)) {
-                    alert('El horario de reserva es de 8:00 am a 8:00 pm');
-                    $(this).val('');
-                }
-            });
-
-            $('#horaFinal').on('input', function() {
-                var hora = $(this).val();
-                var horaMin = 8 * 60;
-                var horaMax = 20 * 60;
-                if (!validarHorario(hora, horaMin, horaMax)) {
-                    alert('El horario de reserva es de 8:00 am a 8:00 pm');
-                    $(this).val('');
-                }
-
-                var horaInicio = $('#horaInicio').val();
-                if ($(this).val() <= horaInicio) {
-                    alert('La hora de finalización debe ser mayor a la hora de inicio');
-                    $(this).val('');
-                }
-            });
-
-        </script>
+    </script>
 
 
-                
-        <script>
-            $(document).ready(function() {
-                var horariosOcupados = [];
 
-                function getHorariosOcupados() {
-                    var sala_id = $('#salaJuntas').val();
-                    var fecha = $('#fechaReservacion').val();
+    <script>
+        $(document).ready(function () {
+            var horariosOcupados = [];
 
-                    if (sala_id && fecha) {
-                        $.ajax({
-                            type: 'GET',
-                            url: '{% url "get_ocupados" %}',
-                            data: {
-                                'sala_id': sala_id,
-                                'fecha': fecha
-                            },
-                            success: function(data) {
-                                horariosOcupados = data;
-                                mostrarHorariosOcupados();
-                            }
-                        });
-                    }
-                }
+            function getHorariosOcupados() {
+                var sala_id = $('#salaJuntas').val();
+                var fecha = $('#fechaReservacion').val();
 
-                function mostrarHorariosOcupados() {
-                    var horariosOcupadosHtml = '';
-                    $.each(horariosOcupados, function(index, value) {
-                        horariosOcupadosHtml += '<p> Ocupado: ' + value.hora_inicio + ' - ' + value.hora_final + '</p>';
-                    });
-                    $('#horarios-ocupados').html(horariosOcupadosHtml);
-                }
-
-                $('#salaJuntas, #fechaReservacion').change(function() {
-                    getHorariosOcupados();
-                });
-
-                $('#horaInicio').on('input', function() {
-                    var horaInicio = $(this).val();
-                    var estaOcupado = false;
-
-                    $.each(horariosOcupados, function(index, value) {
-                        if (horaInicio >= value.hora_inicio && horaInicio < value.hora_final) {
-                            estaOcupado = true;
-                            return false;
+                if (sala_id && fecha) {
+                    $.ajax({
+                        type: 'GET',
+                        url: '{% url "get_ocupados" %}',
+                        data: {
+                            'sala_id': sala_id,
+                            'fecha': fecha
+                        },
+                        success: function (data) {
+                            horariosOcupados = data;
+                            mostrarHorariosOcupados();
                         }
                     });
-
-                    if (estaOcupado) {
-                        $(this).css('background-color', 'rgba(255, 0, 0, 0.5)');
-                    } else {
-                        $(this).css('background-color', 'rgba(0, 128, 0, 0.5)');
-                    }
-                });
-
-                $('#horaFinal').on('input', function() {
-                    var horaFinal = $(this).val();
-                    var estaOcupado = false;
-
-                    $.each(horariosOcupados, function(index, value) {
-                        if (horaFinal > value.hora_inicio && horaFinal <= value.hora_final) {
-                            estaOcupado = true;
-                            return false;
-                        }
-                    });
-
-                    if (estaOcupado) {
-                        $(this).css('background-color', 'rgba(255, 0, 0, 0.5)');
-                    } else {
-                        $(this).css('background-color', 'rgba(0, 128, 0, 0.5)');
-                    }
-                });
-            });
-        </script>
-        
-        
-
-
-        <style>
-            .imagen-principal {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100vw;
-                height: 100vh;
-                object-fit: cover;
-                object-position: center;
-                margin: 0;
-                padding: 0;
-                z-index: -1;
+                }
             }
+
+            function mostrarHorariosOcupados() {
+                var horariosOcupadosHtml = '';
+                $.each(horariosOcupados, function (index, value) {
+                    horariosOcupadosHtml += '<p> Ocupado: ' + value.hora_inicio + ' - ' + value.hora_final + '</p>';
+                });
+                $('#horarios-ocupados').html(horariosOcupadosHtml);
+            }
+
+            $('#salaJuntas, #fechaReservacion').change(function () {
+                getHorariosOcupados();
+            });
+
+            $('#horaInicio').on('input', function () {
+                var horaInicio = $(this).val();
+                var estaOcupado = false;
+
+                $.each(horariosOcupados, function (index, value) {
+                    if (horaInicio >= value.hora_inicio && horaInicio < value.hora_final) {
+                        estaOcupado = true;
+                        return false;
+                    }
+                });
+
+                if (estaOcupado) {
+                    $(this).css('background-color', 'rgba(255, 0, 0, 0.5)');
+                } else {
+                    $(this).css('background-color', 'rgba(0, 128, 0, 0.5)');
+                }
+            });
+
+            $('#horaFinal').on('input', function () {
+                var horaFinal = $(this).val();
+                var estaOcupado = false;
+
+                $.each(horariosOcupados, function (index, value) {
+                    if (horaFinal > value.hora_inicio && horaFinal <= value.hora_final) {
+                        estaOcupado = true;
+                        return false;
+                    }
+                });
+
+                if (estaOcupado) {
+                    $(this).css('background-color', 'rgba(255, 0, 0, 0.5)');
+                } else {
+                    $(this).css('background-color', 'rgba(0, 128, 0, 0.5)');
+                }
+            });
+        });
+    </script>
+
+
+
+
+    <style>
+        .imagen-principal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            object-position: center;
+            margin: 0;
+            padding: 0;
+            z-index: -1;
+        }
+
+        .LoginContainer {
+            width: 660px;
+            height: 540px;
+            margin: 40px auto;
+            margin-top: 100px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-image: url("{% static 'img/footer.jpg' %}");
+            filter: sepia(0.5) saturate(1.5) hue-rotate(340deg);
+            background-size: 399px 60px;
+            background-repeat: repeat-x;
+            background-position: bottom;
+        }
+
+        .logo-1 {
+            width: 200px;
+            height: auto;
+            margin-right: 150px;
+        }
+
+        .logo-2 {
+            width: 85px;
+            height: auto;
+        }
+
+        .titulo {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+            font-family: 'Times New Roman', Times, serif;
+            color: black;
+            font-size: 15px;
+        }
+
+        .ContenedorIconos {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 60px;
+        }
+
+        .CambioContraseña,
+        .Reservacion {
+            margin: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .icono1 {
+            font-size: 47px;
+            margin-bottom: 10px;
+            color: black;
+        }
+
+        .icono2 {
+            font-size: 45.8px;
+            margin-bottom: 10px;
+            color: black;
+        }
+
+        .boton a {
+            text-decoration: underline;
+            color: #000;
+        }
+
+        .alert {
+            margin-top: 400px;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 5px;
+        }
+
+        @media (max-width: 768px) {
+
+            .titulo,
+            .reservacion {
+                display: block;
+                margin: 20px auto;
+            }
+
 
             .LoginContainer {
-                width: 660px;
-                height: 540px;
-                margin: 40px auto;
-                margin-top: 100px;
-                background-color: #fff;
-                border: 1px solid #ddd;
-                border-radius: 10px;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                background-image: url("{% static 'img/footer.jpg' %}");
-                filter: sepia(0.5) saturate(1.5) hue-rotate(340deg);
-                background-size: 399px 60px;
-                background-repeat: repeat-x;
-                background-position: bottom;
+                width: 90%;
+                margin: 20px auto;
             }
 
             .logo-1 {
-                width: 200px;
+                width: 120px;
                 height: auto;
-                margin-right: 150px;
             }
 
             .logo-2 {
-                width: 85px;
+                width: 50px;
                 height: auto;
             }
+        }
 
-            .titulo {
-                text-align: center;
-                margin-top: 20px;
-                font-weight: bold;
-                font-family: 'Times New Roman', Times, serif;
-                color: black;
-                font-size: 15px;
-            }
+        .add-reservation-icon {
+            position: absolute;
+            top: 80px;
+            right: 115px;
+            font-size: 1.8rem;
+            color: rgb(28, 191, 7);
+            z-index: 10;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
 
-            .ContenedorIconos {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                padding: 60px;
+        .add-reservation-icon:hover {
+            color: rgb(0, 0, 0);
+        }
+
+        .filtros-form {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            margin-left: 60px;
+        }
+
+        .form-group {
+            margin-right: 30px;
+            position: relative;
+            top: 35px;
+        }
+
+        .form-group label {
+            font-size: 12px;
+        }
+
+        .short-field input,
+        .short-field select,
+        .evento-field input {
+            height: 22px;
+            font-size: 14px;
+        }
+
+        .short-field input {
+            width: 100px;
+        }
+
+        .sala-field select {
+            width: 130px;
+        }
+
+        .evento-field input {
+            width: 180px;
+        }
+
+        .evento-field {
+            margin-right: 10px;
+            /* ajusta este valor según tus necesidades */
+        }
+
+        .btn-primary {
+            font-size: 10px;
+            position: relative;
+            top: 46px;
+            margin-right: 50px;
+        }
+
+        /* Media query para dispositivos más pequeños */
+        @media (max-width: 370px) {
+            .imagen-principal {
+                width: 100%;
+                height: 100vh;
             }
-            
-            .CambioContraseña, .Reservacion {
-                margin: 25px;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .icono1 {
-                font-size: 47px;
-                margin-bottom: 10px;
-                color: black;
-            }
-            
-            .icono2 {
-                font-size: 45.8px;
-                margin-bottom: 10px;
-                color: black;
-            }
-            
-            .boton a {
-                text-decoration: underline;
-                color: #000;
-            }
-            .alert {
-                margin-top: 400px;
-                padding: 10px;
-                margin: 10px 0;
-                background-color: #d4edda;
-                color: #155724;
-                border: 1px solid #c3e6cb;
-                border-radius: 5px;
-            }
-            
-            @media (max-width: 768px) {
-                .titulo, .reservacion {
-                    display: block;
-                    margin: 20px auto;
-                }
+        }
+    </style>
+
+    <style>
+        .reservaciones-seccion {
+            font-size: 14px;
+        }
+
+        .reservaciones-seccion th,
+        .reservaciones-seccion td {
+            padding: 4px;
+            vertical-align: middle;
+        }
+
+        .reservaciones-seccion th {
+            color: #000;
+        }
+
+        .reservaciones-seccion .table {
+            margin-bottom: 10px;
+            color: #000;
+        }
+
+        .reservaciones-seccion .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(0, 0, 0, 0.05);
+            color: #000;
+        }
+    </style>
+
+    <script>
+        // Ocultar el spinner cuando la página haya terminado de cargar
+        window.addEventListener('load', function () {
+            document.getElementById('spinner').style.display = 'none';
+        });
+        $('#reservacionModal').on('hidden.bs.modal', function () {
+            $(this).find('input, textarea').val('');
+            $(this).find('select').prop('selectedIndex', 0);
+        });
+        var myModal = document.getElementById('reservacionModal')
+        myModal.addEventListener('hidden.bs.modal', function () {
+            // Limpiar los campos del formulario
+            document.getElementById('evento').value = '';
+            document.getElementById('comentarios').value = '';
+            document.getElementById('salaJuntas').selectedIndex = 0;
+            document.getElementById('equipo').value = '';
+            document.getElementById('fechaReservacion').value = '';
+            document.getElementById('num_personas').value = '';
+            document.getElementById('horaInicio').value = '';
+            document.getElementById('horaFinal').value = '';
+        });
+    </script>
 
 
-                .LoginContainer {
-                    width: 90%;
-                    margin: 20px auto;
-                }
 
-                .logo-1 {
-                    width: 120px;
-                    height: auto;
-                }
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Template Javascript -->
+    <script src="{% static 'js/main.js'%}"></script>
 
-                .logo-2 {
-                    width: 50px;
-                    height: auto;
-                }
-            }
-            .add-reservation-icon {
-                position: absolute;
-                top: 80px;
-                right: 115px;
-                font-size: 1.8rem;
-                color:rgb(28, 191, 7);
-                z-index: 10;
-                text-decoration: none;
-                transition: color 0.3s ease;
-            }
-            
-            .add-reservation-icon:hover {
-                color:rgb(0, 0, 0);
-            }
+</body>
 
-            .filtros-form {
-                display: flex;
-                flex-direction: row;
-                align-items: center;
-                margin-left: 60px;
-            }
-
-            .form-group {
-                margin-right: 30px;
-                position: relative;
-                top: 35px;
-            }
-
-            .form-group label {
-                font-size: 12px;
-            }
-
-            .short-field input, .short-field select, .evento-field input {
-                height: 22px;
-                font-size: 14px;
-            }
-
-            .short-field input {
-                width: 100px;
-            }
-
-            .sala-field select {
-                width: 130px;
-            }
-
-            .evento-field input {
-                width: 180px;
-            }
-
-            .evento-field {
-                margin-right: 10px; /* ajusta este valor según tus necesidades */
-            }
-
-            .btn-primary {
-                font-size: 10px;
-                position: relative;
-                top: 46px;
-                margin-right: 50px;
-            }                      
-            /* Media query para dispositivos más pequeños */
-            @media (max-width: 370px) {
-                .imagen-principal {
-                    width: 100%;
-                    height: 100vh;
-                }
-            }
-        </style>
-
-        <script>
-            // Ocultar el spinner cuando la página haya terminado de cargar
-            window.addEventListener('load', function() {
-                document.getElementById('spinner').style.display = 'none';
-            });
-            $('#reservacionModal').on('hidden.bs.modal', function() {
-                $(this).find('input, textarea').val('');
-                $(this).find('select').prop('selectedIndex', 0);
-            });
-            var myModal = document.getElementById('reservacionModal')
-            myModal.addEventListener('hidden.bs.modal', function () {
-                // Limpiar los campos del formulario
-                document.getElementById('evento').value = '';
-                document.getElementById('comentarios').value = '';
-                document.getElementById('salaJuntas').selectedIndex = 0;
-                document.getElementById('equipo').value = '';
-                document.getElementById('fechaReservacion').value = '';
-                document.getElementById('num_personas').value = '';
-                document.getElementById('horaInicio').value = '';
-                document.getElementById('horaFinal').value = '';
-            });
-        </script>
-
-        <!-- JavaScript Libraries -->
-        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
-        <!-- Template Javascript -->
-        <script src="{% static 'js/main.js'%}"></script>
-
-    </body>
 </html>

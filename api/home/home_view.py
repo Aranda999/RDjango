@@ -96,6 +96,4 @@ def get_ocupados(request):
 
     return JsonResponse(list(ocupados), safe=False)
 
-def mostrar_reservaciones(request):
-    reservaciones = Reservacion.objects.filter(usuario=request.user)
-    return render(request, 'reservaciones.html', {'reservaciones': reservaciones})
+
