@@ -8,6 +8,8 @@ from django.http import JsonResponse
 from datetime import datetime
 import json
 from api.filters import ReservacionFilter
+from datetime import timedelta
+from django.utils import timezone
 
 @login_required (login_url= 'login')
 def Home(request):
@@ -50,6 +52,9 @@ def HomeUser(request):
 @login_required
 def Reservation(request):
     reservaciones = Reservacion.objects.filter(usuario=request.user)
+    fecha = request.GET.get('fecha')
+    if fecha == 'actuales_y_futuras':
+        reservaciones = reservaciones.filter(fecha__gte=timezone.now().date())
     myFilter = ReservacionFilter(request.GET, queryset=reservaciones)
     reservaciones = myFilter.qs
     salas = SalaJuntas.objects.all()
@@ -91,9 +96,5 @@ def Reservation(request):
 def get_ocupados(request):
     sala_id = request.GET.get('sala_id')
     fecha = request.GET.get('fecha')
-
     ocupados = Reservacion.objects.filter(sala_id=sala_id, fecha=fecha).values('hora_inicio', 'hora_final')
-
     return JsonResponse(list(ocupados), safe=False)
-
-

@@ -33,6 +33,16 @@
     <img src="{% static 'img/FondoWindow1.jpg' %}" class="imagen-principal" alt="Imagen de fondo principal"
         style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; object-position: center; margin: 0; padding: 0; z-index: -1;">
 
+
+    {% if messages %}
+    <div class="alert alert-success mt-2" role="alert"
+        style="font-size: 10px; color: #000; width: 200px; height: auto;">
+        {% for message in messages %}
+        <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <div class="LoginContainer">
         <div class="Logos">
             <img src="{% static 'img/IconCdmx.png' %}" alt="Logo 1" class="logo-1">
@@ -72,7 +82,19 @@
         </div>
 
         <div class="reservaciones-seccion container text-center mt-2">
-            <h4 style="font-weight: bold; color: black;margin-top: 42px; font-size: 16px;">Mis Reservaciones</h4>
+            <h4 style="font-weight: bold; color: black;margin-top: 40px; font-size: 16px;">Mis Reservaciones</h4>
+            <ul class="nav nav-tabs" style="margin-top: -15px;">
+                <li class="nav-item">
+                    <a class="nav-link {% if not request.GET.fecha %}active{% endif %}"
+                        href="{% url 'reservation' %}">Todas</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.GET.fecha == 'actuales_y_futuras' %}active{% endif %}"
+                        href="{% url 'reservation' %}?fecha=actuales_y_futuras">Actuales y futuras</a>
+                </li>
+            </ul>
+
+
             <hr style="border-top: 3px solid rgb(156, 34, 34); margin-bottom: 2px; margin-top: 2px; ">
 
             {% if reservaciones %}
@@ -101,16 +123,10 @@
             {% else %}
             <p style="font-size: 14px;">No tienes reservaciones registradas.</p>
             {% endif %}
-
-            {% if messages %}
-            <div class="alert alert-success mt-2" role="alert" style="font-size: 14px;">
-                {% for message in messages %}
-                <p>{{ message }}</p>
-                {% endfor %}
-            </div>
-            {% endif %}
         </div>
     </div>
+
+
 
     <form method="POST" action="{% url 'reservation' %}" onsubmit="return validarFormulario()">
         {% csrf_token %}
@@ -386,8 +402,8 @@
         }
 
         .LoginContainer {
-            width: 660px;
-            height: 540px;
+            width: 680px;
+            height: 560px;
             margin: 40px auto;
             margin-top: 100px;
             background-color: #fff;
@@ -564,7 +580,7 @@
 
     <style>
         .reservaciones-seccion {
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .reservaciones-seccion th,
