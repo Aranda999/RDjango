@@ -35,12 +35,22 @@
 
 
     {% if messages %}
-    <div class="alert alert-success mt-2" role="alert"
-        style="font-size: 10px; color: #000; width: 200px; height: auto;">
-        {% for message in messages %}
-        <p>{{ message }}</p>
-        {% endfor %}
-    </div>
+        <div class="alert alert-success mt-2" role="alert" style="
+            position: fixed;
+            top: 30px;
+            right: 570px;
+            font-size: 13px;
+            color: #000;
+            width: 360px;
+            height: auto;
+            background-color: rgba(255, 255, 255, 0.884);
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 5px;">
+            {% for message in messages %}
+            <p>{{ message }}</p>
+            {% endfor %}
+        </div>
     {% endif %}
 
     <div class="LoginContainer">
@@ -94,7 +104,6 @@
                 </li>
             </ul>
 
-
             <hr style="border-top: 3px solid rgb(156, 34, 34); margin-bottom: 2px; margin-top: 2px; ">
 
             {% if reservaciones %}
@@ -103,9 +112,10 @@
                     <thead style="position: sticky; background-color: #fff;">
                         <tr>
                             <th style="border-bottom: 2px solid #333; width: 35%; padding: 5px;">Evento</th>
-                            <th style="border-bottom: 2px solid #333; width: 18%; padding: 5px;">Sala de Juntas</th>
+                            <th style="border-bottom: 2px solid #333; width: 20%; padding: 5px;">Sala de Juntas</th>
                             <th style="border-bottom: 2px solid #333; width: 15%; padding: 5px;">Fecha</th>
-                            <th style="border-bottom: 2px solid #333; width: 14%; padding: 5px;">Hora Inicio</th>
+                            <th style="border-bottom: 2px solid #333; width: 15%; padding: 5px;">Hora Inicio</th>
+                            <th style="border-bottom: 2px solid #333; width: 15%; padding: 5px;">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -115,6 +125,18 @@
                             <td>{{ reservacion.sala.nombre }}</td>
                             <td>{{ reservacion.fecha }}</td>
                             <td>{{ reservacion.hora_inicio }}</td>
+                            <td>
+                            {% if reservacion.editable %}
+                                <a href="#" data-bs-toggle="modal" data-bs-target="#editarReservacion{{ reservacion.id_reservacion }}">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            {% else %}
+                                <a href="#" style="pointer-events: none; color: gray;">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            {% endif %}
+                        </td>
+
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -126,11 +148,87 @@
         </div>
     </div>
 
+    {% for reservacion in reservaciones %}
+    <div class="modal fade" id="editarReservacion{{ reservacion.id_reservacion }}" tabindex="-1" aria-labelledby="editarReservacionLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 15px;">
+                <form method="POST" action="{% url 'editar_reservacion' reservacion.id_reservacion %}">
+                    {% csrf_token %}
+                    <div class="modal-header" style="background-color: rgba(61, 50, 50, 0.77); border-top-left-radius: 13px; border-top-right-radius: 13px; height: 20px;">
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="background-color: transparent; border: none; padding: 0; font-size: 15px; margin-right: 3px;"></button>
+                    </div>
+
+                    <h5 class="modal-title" id="editarReservacionLabel" style="margin-left: 15px; margin-top: 10px;">Metro CDMX</h5>
+
+                    <div class="modal-body">
+                        <!-- Evento -->
+                        <div class="mb-2">
+                            <label class="form-label fw-bold" style="color: black;">EVENTO</label>
+                            <input type="text" class="form-control form-control-sm" id="evento" name="evento" value="{{ reservacion.evento }}" style="border: 1px solid black;" required>
+                        </div>
+
+                        <!-- Comentarios -->
+                        <div class="mb-2">
+                            <label class="form-label fw-bold" style="color: black;">COMENTARIOS</label>
+                            <textarea class="form-control form-control-sm" id="comentarios" name="comentarios" rows="2" style="resize: none; border: 1px solid black;">{{ reservacion.comentarios }}</textarea>
+                            <p style="margin-bottom: 5px; font-size: 12px;">Max 15 palabras</p>
+                        </div>
+
+                        <!-- Sala y Equipo -->
+                        <div class="row align-items-start">
+                            <div class="col-4">
+                                <div class="mb-2">
+                                    <label class="form-label fw-bold" style="color: black;">SALA DE JUNTAS</label>
+                                    <select class="form-select form-select-sm" id="salaJuntas" name="salaJuntas" style="border: 1px solid black; width: 100%;" required>
+                                        {% for sala in salas %}
+                                        <option value="{{ sala.id_sala }}" data-equipo="{{ sala.equipo }}" data-capacidad="{{ sala.capacidad }}" {% if sala.id_sala == reservacion.sala.id_sala %}selected{% endif %}>{{ sala.nombre }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-8">
+                                <div class="mb-2">
+                                    <label class="form-label fw-bold" style="color: black;">EQUIPO</label>
+                                    <textarea class="form-control form-control-sm" id="equipo" name="equipo" readonly style="border: 1px solid black; width: 100%; height: 50px; resize: none;" placeholder="Selecciona una sala para ver el equipo">{{ reservacion.sala.equipo }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <label class="form-label fw-bold" style="color: black;">FECHA DE RESERVA</label>
+                                <input type="date" class="form-control form-control-sm" id="fechaReservacion" name="fechaReservacion" value="{{ reservacion.fecha }}" style="border: 1px solid black;" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold" style="color: black;">NÚMERO DE PERSONAS</label>
+                                <input type="number" class="form-control form-control-sm" id="num_personas" name="num_personas" value="{{ reservacion.num_personas }}" min="1" max="100" style="border: 1px solid black;" required>
+                            </div>
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <label class="form-label fw-bold" style="color: black;">HORA DE INICIO</label>
+                                <input type="time" class="form-control form-control-sm" id="horaInicio" name="horaInicio" value="{{ reservacion.hora_inicio }}" style="border: 1px solid black;" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold" style="color: black;">HORA DE FIN</label>
+                                <input type="time" class="form-control form-control-sm" id="horaFinal" name="horaFinal" value="{{ reservacion.hora_final }}" style="border: 1px solid black;" required>
+                            </div>
+                        </div>
+
+                        <div id="horarios-ocupados" style="color: red; text-align: center;"></div>
+
+                        <button type="submit" class="btn" style="background-color: #ff6200; color: black; width: 50%; margin: 15px auto 0 auto; display: block; padding: 10px; border: 1px solid black; border-radius: 5px;">Guardar cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
 
 
     <form method="POST" action="{% url 'reservation' %}" onsubmit="return validarFormulario()">
         {% csrf_token %}
-
         <div class="modal fade" id="reservacionModal" tabindex="-1" aria-labelledby="reservacionModalLabel"
             aria-hidden="true">
             <div class="modal-dialog">
@@ -626,6 +724,7 @@
             document.getElementById('horaFinal').value = '';
         });
     </script>
+
 
 
 

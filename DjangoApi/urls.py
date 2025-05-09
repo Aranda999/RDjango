@@ -21,6 +21,7 @@ from django.urls import path
 from api.home.home_view import Home
 from api.home.home_view import HomeUser
 from api.home.home_view import Reservation
+from api.home.home_view import editar_reservacion
 from api.home.home_view import get_ocupados
 from api.log.login_view import Login
 from api.log.login_view import Logout
@@ -34,11 +35,12 @@ admin.site.login_url = reverse_lazy('login')
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('',Login, name= "login"),
-    path('logout/',Logout, name= "logout"),
+    path('logout/',Logout, name= "logout"), 
     path('home/',Home, name= "home"),
     path('homeuser/',HomeUser, name= "homeuser"),
     path('password/',Password, name= "password"),
     path('reservation/',Reservation, name= "reservation"),
+    path('reservation/editar/<int:pk>/', editar_reservacion, name='editar_reservacion'),
     path('graficos/',graficos, name= "graficos"),
     path('reset-password/<uidb64>/<token>/', reset_password, name='reset_password'),
     path('get_ocupados/', get_ocupados, name='get_ocupados'),

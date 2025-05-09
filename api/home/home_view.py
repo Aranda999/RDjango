@@ -57,8 +57,13 @@ def Reservation(request):
         reservaciones = reservaciones.filter(fecha__gte=timezone.now().date())
     myFilter = ReservacionFilter(request.GET, queryset=reservaciones)
     reservaciones = myFilter.qs
+    for reservacion in reservaciones:
+        hora_inicio = datetime.combine(reservacion.fecha, reservacion.hora_inicio)
+        if hora_inicio - datetime.now() < timedelta(hours=1):
+            reservacion.editable = False
+        else:
+            reservacion.editable = True
     salas = SalaJuntas.objects.all()
-
     if request.method == 'POST':
         # Obtener los datos del formulario
         fecha_reservacion = request.POST.get('fechaReservacion')
@@ -90,11 +95,32 @@ def Reservation(request):
 
         messages.success(request, f"Reservación realizada con éxito para '{evento}'.")
         return redirect('reservation')
+    return render(request, "reservation.html", {'salas': salas, 'reservaciones': reservaciones, 'myFilter': myFilter, 'today': timezone.now().date()}) 
 
-    return render(request, "reservation.html", {'salas': salas, 'reservaciones': reservaciones, 'myFilter': myFilter})
-    
+
 def get_ocupados(request):
     sala_id = request.GET.get('sala_id')
     fecha = request.GET.get('fecha')
     ocupados = Reservacion.objects.filter(sala_id=sala_id, fecha=fecha).values('hora_inicio', 'hora_final')
     return JsonResponse(list(ocupados), safe=False)
+
+def editar_reservacion(request, pk):
+    reservacion = Reservacion.objects.get(id_reservacion=pk)
+    if request.method == 'POST':
+        evento = request.POST.get('evento')
+        fecha_reservacion = request.POST.get('fechaReservacion')
+        hora_inicio = request.POST.get('horaInicio')
+        hora_final = request.POST.get('horaFinal')
+        sala_id = request.POST.get('salaJuntas')
+
+        # Actualizar la reservación
+        reservacion.evento = evento
+        reservacion.fecha = fecha_reservacion
+        reservacion.hora_inicio = hora_inicio
+        reservacion.hora_final = hora_final
+        reservacion.sala = SalaJuntas.objects.get(id_sala=sala_id)
+        reservacion.save()
+
+        messages.success(request, f"Reservación actualizada con éxito para '{evento}'.")
+        return redirect('reservation')
+    return redirect('reservation')
