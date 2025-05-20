@@ -79,8 +79,9 @@ class Reservacion(models.Model):
     hora_inicio = models.TimeField()
     hora_final = models.TimeField()
     sala = models.ForeignKey(SalaJuntas, on_delete=models.CASCADE)
-    usuario = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)  # Agregar este campo
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     invitados = models.ManyToManyField(Invitado, blank=True)
+    enviar_correo = models.BooleanField(default=False)  # Nuevo campo
 
     class Meta:
         db_table = 'reservaciones'

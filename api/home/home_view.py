@@ -74,11 +74,12 @@ def Reservation(request):
         comentarios = request.POST.get('comentarios', '')
 
         try:
+            fecha_reservacion = datetime.strptime(fecha_reservacion, '%Y-%m-%d').date()
             hora_inicio = datetime.strptime(hora_inicio_str, '%H:%M').time()
             hora_final = datetime.strptime(hora_final_str, '%H:%M').time()
         except ValueError:
-            # Esta validación ya se realiza en el lado del cliente
-            pass
+            messages.error(request, "Fecha o hora inválida")
+            return redirect('reservation')
 
         sala = SalaJuntas.objects.get(id_sala=sala_id)
 
@@ -90,37 +91,23 @@ def Reservation(request):
             hora_inicio=hora_inicio,
             hora_final=hora_final,
             sala=sala,
-            usuario=request.user  # Agregar el usuario que hace la reservación
+            usuario=request.user
         )
 
         messages.success(request, f"Reservación realizada con éxito para '{evento}'.")
         return redirect('reservation')
-    return render(request, "reservation.html", {'salas': salas, 'reservaciones': reservaciones, 'myFilter': myFilter, 'today': timezone.now().date()}) 
+    return render(request, "reservation.html", {'salas': salas, 'reservaciones': reservaciones, 'myFilter': myFilter, 'today': timezone.now().date()})
 
 
 def get_ocupados(request):
-    sala_id = request.GET.get('sala_id')
-    fecha = request.GET.get('fecha')
-    ocupados = Reservacion.objects.filter(sala_id=sala_id, fecha=fecha).values('hora_inicio', 'hora_final')
-    return JsonResponse(list(ocupados), safe=False)
-
-def editar_reservacion(request, pk):
-    reservacion = Reservacion.objects.get(id_reservacion=pk)
-    if request.method == 'POST':
-        evento = request.POST.get('evento')
-        fecha_reservacion = request.POST.get('fechaReservacion')
-        hora_inicio = request.POST.get('horaInicio')
-        hora_final = request.POST.get('horaFinal')
-        sala_id = request.POST.get('salaJuntas')
-
-        # Actualizar la reservación
-        reservacion.evento = evento
-        reservacion.fecha = fecha_reservacion
-        reservacion.hora_inicio = hora_inicio
-        reservacion.hora_final = hora_final
-        reservacion.sala = SalaJuntas.objects.get(id_sala=sala_id)
-        reservacion.save()
-
-        messages.success(request, f"Reservación actualizada con éxito para '{evento}'.")
-        return redirect('reservation')
-    return redirect('reservation')
+    try:
+        sala_id = request.GET.get('sala_id')
+        fecha = request.GET.get('fecha')
+        reservacion_id = request.GET.get('reservacion_id')
+        if reservacion_id:
+            ocupados = Reservacion.objects.filter(sala_id=sala_id, fecha=fecha).exclude(id_reservacion=reservacion_id).values('hora_inicio', 'hora_final')
+        else:
+            ocupados = Reservacion.objects.filter(sala_id=sala_id, fecha=fecha).values('hora_inicio', 'hora_final')
+        return JsonResponse(list(ocupados), safe=False)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

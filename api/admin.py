@@ -38,4 +38,4 @@ class InvitadoAdmin(admin.ModelAdmin):
 class ReservacionAdmin(admin.ModelAdmin):
     list_display = ('evento', 'fecha', 'hora_inicio', 'hora_final', 'sala', 'usuario')
     search_fields = ('evento', 'fecha')
-    list_filter = ('fecha', 'sala')
+    list_filter = ('fecha', 'sala','usuario')

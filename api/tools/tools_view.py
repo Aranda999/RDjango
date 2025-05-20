@@ -11,6 +11,7 @@ import base64
 import pandas as pd
 from datetime import timedelta
 from datetime import datetime
+from django.http import JsonResponse
 
 
 def graficos(request):
@@ -82,3 +83,39 @@ def graficos(request):
         'salas_juntas': salas_juntas,
     }
     return render(request, 'graficos.html', context)
+
+
+# bueno
+def editar_reservacion(request, pk):
+    if request.method == 'POST':
+        try:
+            reservacion = Reservacion.objects.get(id_reservacion=pk)
+        except Reservacion.DoesNotExist:
+            return JsonResponse({'success': False}, status=404)
+
+        reservacion.evento = request.POST.get('evento_editar')
+        reservacion.comentarios = request.POST.get('comentarios_editar')
+        reservacion.sala_id = request.POST.get('salaJuntas_editar')
+        reservacion.fecha = request.POST.get('fechaReservacion_editar')
+        reservacion.hora_inicio = request.POST.get('horaInicio_editar')
+        reservacion.hora_final = request.POST.get('horaFinal_editar')
+        reservacion.save()
+
+        return JsonResponse({'success': True})
+
+    elif request.method == 'GET':
+        try:
+            reservacion = Reservacion.objects.get(id_reservacion=pk)
+        except Reservacion.DoesNotExist:
+            return JsonResponse({'success': False}, status=404)
+
+        data = {
+            'evento': reservacion.evento,
+            'comentarios': reservacion.comentarios,
+            'sala_id': reservacion.sala_id,
+            'fecha': reservacion.fecha,
+            'hora_inicio': reservacion.hora_inicio,
+            'hora_final': reservacion.hora_final,
+        }
+
+        return JsonResponse(data)
