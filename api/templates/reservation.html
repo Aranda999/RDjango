@@ -240,8 +240,17 @@
                             </div>
                         </div>
 
+                        <div class="mb-2">
+                            <input type="checkbox" id="notificarReserva" name="notificarReserva">
+                            <label for="notificarReserva" class="fw-bold" style="color: black;">¿Notificar esta reservación?</label>
+                        </div>
+                        <div class="mb-2" id="seleccionDestinatarios" style="display: none;">
+                            <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#modalDestinatarios">
+                                Seleccionar Destinatarios
+                            </button>
+                        </div>
+                        <input type="hidden" id="destinatariosSeleccionados" name="destinatariosSeleccionados">
                         <div id="horarios-ocupados" style="color: red; text-align: center;font-size: 14px;"></div>
-
                         <button type="submit" class="btn"
                             style="background-color: #ff6200; color: black; width: 50%; margin: 15px auto 0 auto; display: block; padding: 10px; border: 1px solid black; border-radius: 5px;">
                             Reservar
@@ -253,8 +262,129 @@
     </form>
 
 
+    <div class="modal fade" id="modalDestinatarios" tabindex="-1" aria-labelledby="modalDestinatariosLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content" style="border-radius: 15px;">
+                <div class="modal-header"
+                    style="background-color: rgba(61, 50, 50, 0.77); border-top-left-radius: 13px; border-top-right-radius: 13px;">
+                    <h5 class="modal-title" id="modalDestinatariosLabel">Seleccionar Destinatarios</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Pestañas con abreviaturas -->
+                    <ul class="nav nav-tabs" style="margin-top: -15px; border-bottom: 2px solid #ff6200;">
+                        {% for area in areas %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if forloop.first %}active{% endif %}" id="tab-{{ area.id_area }}"
+                                data-bs-toggle="tab" href="#area-{{ area.id_area }}">
+                                {{ area.id_area }} <!-- Usamos la abreviatura -->
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+
+                    <!-- Contenido de cada pestaña -->
+                    <div class="tab-content mt-3">
+                        {% for area in areas %}
+                        <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" id="area-{{ area.id_area }}">
+                            <h6 class="mt-2 text-center" style="color: #333; font-weight: bold;">Destinatarios en {{ area.nombre }}</h6>
+                            <div class="destinatarios-container p-2 border rounded" style="background-color: #f9f9f9;">
+                                {% for invitado in area.invitados.all %}
+                                <div class="form-check">
+                                    <input class="form-check-input destinatario-checkbox" type="checkbox"
+                                        value="{{ invitado.id_invitado }}" id="destinatario-{{ invitado.id_invitado }}">
+                                    <label class="form-check-label" for="destinatario-{{ invitado.id_invitado }}">
+                                        {{ invitado.nombre_completo }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <!-- Botón dentro del modal -->
+                    <div class="mt-3 text-center">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Mostrar mensaje de error en el modal
+        // Mostrar u ocultar el botón de selección de destinatarios cuando se marca el checkbox
+        document.getElementById("notificarReserva").addEventListener("change", function() {
+            document.getElementById("seleccionDestinatarios").style.display = this.checked ? "block" : "none";
+        });
+
+        // Guardar destinatarios seleccionados temporalmente al cerrar el modal
+        document.getElementById("modalDestinatarios").addEventListener("hidden.bs.modal", function() {
+            let seleccionados = [];
+            document.querySelectorAll(".destinatario-checkbox:checked").forEach(el => {
+                seleccionados.push(el.value);
+            });
+
+            document.getElementById("destinatariosSeleccionados").value = seleccionados.join(",");
+            console.log("Destinatarios guardados temporalmente:", seleccionados); // Depuración en consola
+        });
+
+        // Función para convertir fecha al formato correcto (yyyy-MM-dd)
+        function convertirFecha(fechaStr) {
+            let fecha = new Date(fechaStr);
+            return fecha.toISOString().split("T")[0];  // yyyy-MM-dd
+        }
+
+        // Función para convertir hora al formato correcto (HH:mm)
+        function convertirHora(horaStr) {
+            let hora = new Date("1970-01-01 " + horaStr);
+            return hora.toISOString().substr(11, 5);  // HH:mm
+        }
+
+        // Capturar fecha y hora en el formulario antes de enviarlo
+        document.querySelector("form").addEventListener("submit", function(event) {
+            let fechaReservacion = document.getElementById("fechaReservacion").value;
+            let horaInicio = document.getElementById("horaInicio").value;
+            let horaFinal = document.getElementById("horaFinal").value;
+
+            // Aplicar conversión al formato correcto
+            document.getElementById("fechaReservacion").value = convertirFecha(fechaReservacion);
+            document.getElementById("horaInicio").value = convertirHora(horaInicio);
+            document.getElementById("horaFinal").value = convertirHora(horaFinal);
+
+            console.log("Fecha y horas procesadas:", fechaReservacion, horaInicio, horaFinal);
+        });
+
+        // Carga dinámica de destinatarios con caché para evitar múltiples peticiones
+        let cacheDestinatarios = {};
+
+        document.querySelectorAll("#tabsAreas .nav-link").forEach(tab => {
+            tab.addEventListener("click", async function() {
+                let areaId = this.id.split("-")[1];  
+                let targetDiv = document.getElementById(`area-${areaId}`);
+
+                if (!cacheDestinatarios[areaId]) {
+                    try {
+                        let response = await fetch(`/get_destinatarios/?area_id=${areaId}`);
+                        let data = await response.json();
+                        let contenido = data.map(inv => `
+                            <div class="form-check">
+                                <input class="form-check-input destinatario-checkbox" type="checkbox" value="${inv.id_invitado}" id="destinatario-${inv.id_invitado}">
+                                <label class="form-check-label" for="destinatario-${inv.id_invitado}">${inv.nombre_completo} (${inv.correo})</label>
+                            </div>
+                        `).join("");
+                        targetDiv.innerHTML = contenido;
+                        cacheDestinatarios[areaId] = contenido; // Guardar en caché
+                    } catch (error) {
+                        console.error("Error al cargar destinatarios:", error);
+                    }
+                } else {
+                    targetDiv.innerHTML = cacheDestinatarios[areaId];
+                }
+            });
+        });
+    </script>
+
+    <script>
+         // Mostrar mensaje de error en el modal
         function mostrarError(mensaje) {
             $('#error-message').html(mensaje);
             $('#error-message').css({
@@ -277,6 +407,7 @@
         function calcularDiferenciaDias(fecha1, fecha2) {
             return (fecha1 - fecha2) / (1000 * 3600 * 24);
         }
+
 
         $(document).ready(function () {
             var horariosOcupados = [];
@@ -308,7 +439,7 @@
                 }
             });
 
-            $('#salaJuntas').change(function () {
+            $('#salaJuntas').on('change', function () {
                 ocultarError();
                 getHorariosOcupados();
             });
@@ -322,11 +453,11 @@
                 if (horaInicio && horaFinal) {
                     if (horaInicio < horaMin || horaInicio > horaMax || horaFinal < horaMin || horaFinal > horaMax || horaFinal <= horaInicio) {
                         if (horaInicio < horaMin || horaInicio > horaMax) {
-                            mostrarError('Las reservaciones comienzan a las 8:00 PM');
+                            mostrarError('Las reservaciones comienzan a las 8:00 y terminan a las 20:00');
                         } else if (horaFinal < horaMin || horaFinal > horaMax) {
-                            mostrarError('Las reservaciones deben finalizar a las 8:00 PM');
+                            mostrarError('Las reservaciones deben finalizar antes de las 20:00');
                         } else {
-                            mostrarError('La hora de finalización debe ser mayor a la hora d');
+                            mostrarError('La hora de finalización debe ser mayor a la hora de inicio');
                         }
                         $('#horaInicio').val('');
                         $('#horaFinal').val('');
@@ -350,7 +481,6 @@
                     }
                 }
             });
-
             function getHorariosOcupados() {
                 var sala_id = $('#salaJuntas').val();
                 var fecha = $('#fechaReservacion').val();
@@ -364,17 +494,21 @@
                             'fecha': fecha
                         },
                         success: function (data) {
+                            // console.log('Horarios ocupados:', data); // Comenta o elimina esta línea
                             horariosOcupados = data;
                             mostrarHorariosOcupados();
                         }
                     });
+                } else {
+                    $('#horarios-ocupados').html('');
                 }
             }
-
             function mostrarHorariosOcupados() {
                 var horariosOcupadosHtml = '';
                 $.each(horariosOcupados, function (index, value) {
-                    horariosOcupadosHtml += '<p style="margin: 0;">Ocupado: ' + value.hora_inicio + ' - ' + value.hora_final + '</p>';
+                    var horaInicio = value.hora_inicio.substring(0, 5); // Extraer solo HH:mm
+                    var horaFinal = value.hora_final.substring(0, 5); // Extraer solo HH:mm
+                    horariosOcupadosHtml += '<p style="margin: 0;">Ocupado: ' + horaInicio + ' - ' + horaFinal + '</p>';
                 });
                 $('#horarios-ocupados').html(horariosOcupadosHtml);
             }
@@ -398,8 +532,6 @@
             });
         });
     </script>
-
-
 
     <style>
         .imagen-principal {

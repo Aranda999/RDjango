@@ -6,11 +6,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> -->
+
 </head>
 <!-- antes de lo malo -->
 
 <body>
-    {% for reservacion in reservaciones %}
+{% for reservacion in reservaciones %}
     <div class="modal fade" id="editarReservacion{{ reservacion.id_reservacion }}" tabindex="-1"
         aria-labelledby="editarReservacionLabel{{ reservacion.id_reservacion }}" aria-hidden="true">
         <div class="modal-dialog">
@@ -64,9 +67,7 @@
                             <div class="col-6">
                                 <div class="mb-2">
                                     <label class="form-label fw-bold" style="color: black;">FECHA DE RESERVA</label>
-                                    <input type="date" class="form-control form-control-sm"
-                                        id="fechaReservacion_editar_{{ reservacion.id_reservacion }}" name="fecha"
-                                        value="{{ reservacion.fecha }}" style="border: 1px solid black;" required>
+                                    <input type="date" class="form-control form-control-sm" id="fechaReservacion_editar_{{ reservacion.id_reservacion }}" name="fecha" style="border: 1px solid black;" required>
                                     <p style="font-size: 12px; color: gray; margin-bottom: 5px;">Fecha actual: {{ reservacion.fecha }}</p>
                                 </div>
                             </div>
@@ -75,19 +76,30 @@
                         <div class="row mb-1">
                             <div class="col-6">
                                 <label class="form-label fw-bold" style="color: black;">HORA DE INICIO</label>
-                                <input type="time" class="form-control form-control-sm"
-                                    id="horaInicio_editar_{{ reservacion.id_reservacion }}" name="horaInicio_editar"
-                                    value="{{ reservacion.hora_inicio }}" style="border: 1px solid black;" required>
+                                <input type="time" class="form-control form-control-sm" id="horaInicio_editar_{{ reservacion.id_reservacion }}" name="horaInicio_editar" style="border: 1px solid black;" required>
                                 <p style="font-size: 12px; color: gray; margin-bottom: 5px;">Hora de inicio actual: {{ reservacion.hora_inicio }}</p>
                             </div>
                             <div class="col-6">
                                 <label class="form-label fw-bold" style="color: black;">HORA DE FIN</label>
-                                <input type="time" class="form-control form-control-sm"
-                                    id="horaFinal_editar_{{ reservacion.id_reservacion }}" name="horaFinal_editar"
-                                    value="{{ reservacion.hora_final }}" style="border: 1px solid black;" required>
+                                <input type="time" class="form-control form-control-sm" id="horaFinal_editar_{{ reservacion.id_reservacion }}" name="horaFinal_editar" style="border: 1px solid black;" required>
                                 <p style="font-size: 12px; color: gray; margin-bottom: 5px;">Hora de fin actual: {{ reservacion.hora_final }}</p>
                             </div>
                         </div>
+                        <div class="mb-2">
+                            <input type="checkbox" id="notificar_edicion_{{ reservacion.id_reservacion }}" name="notificar_edicion">
+                            <label for="notificar_edicion_{{ reservacion.id_reservacion }}" style="color: black; font-weight: bold;">
+                                Notificar actualización a los destinatarios
+                            </label>
+                        </div>
+
+                        <!-- Botón para seleccionar destinatarios (se oculta si el checkbox no está marcado) -->
+                        <div id="seleccionDestinatariosEditar_{{ reservacion.id_reservacion }}" style="display: none;">
+                            <button type="button" class="btn btn-secondary" data-bs-toggle="modal"
+                                data-bs-target="#modalEditarDestinatarios{{ reservacion.id_reservacion }}">
+                                Seleccionar destinatarios
+                            </button>
+                        </div>
+
                         <div id="horarios-ocupados-editar-{{ reservacion.id_reservacion }}"
                             style="color: red; text-align: center; font-size: 14px;"></div>
                         <button type="button" class="btn" id="boton-editar-{{ reservacion.id_reservacion }}"
@@ -99,7 +111,9 @@
             </div>
         </div>
     </div>
-    {% endfor %}
+{% endfor %}
+
+
 
     <script>
         $(document).ready(function () {
@@ -276,6 +290,62 @@
             }
         });
     </script>
+
+
+<div class="modal fade" id="modalEditarDestinatarios{{ reservacion.id_reservacion }}" tabindex="-1"
+    aria-labelledby="modalEditarDestinatariosLabel{{ reservacion.id_reservacion }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius: 15px;">
+            <div class="modal-header"
+                style="background-color: rgba(61, 50, 50, 0.77); border-top-left-radius: 13px; border-top-right-radius: 13px;">
+                <h5 class="modal-title" id="modalEditarDestinatariosLabel{{ reservacion.id_reservacion }}">
+                    Seleccionar Destinatarios para actualización
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Contenedor de pestañas por áreas -->
+                <ul class="nav nav-tabs">
+                    {% for area in areas %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if forloop.first %}active{% endif %}"
+                            id="tabEditar-{{ reservacion.id_reservacion }}-{{ area.id_area }}"
+                            data-bs-toggle="tab"
+                            href="#areaEditar-{{ reservacion.id_reservacion }}-{{ area.id_area }}">
+                            {{ area.id_area }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                <!-- Contenido de cada pestaña -->
+                <div class="tab-content mt-3">
+                    {% for area in areas %}
+                    <div class="tab-pane fade {% if forloop.first %}show active{% endif %}"
+                        id="areaEditar-{{ reservacion.id_reservacion }}-{{ area.id_area }}">
+                        <h6 class="text-center">Destinatarios en {{ area.nombre }}</h6>
+                        <div class="p-2 border rounded">
+                            {% for invitado in area.invitados.all %}
+                            <div class="form-check">
+                                <input class="form-check-input destinatario-editar-checkbox"
+                                    type="checkbox"
+                                    value="{{ invitado.id_invitado }}"
+                                    id="destinatarioEditar-{{ reservacion.id_reservacion }}-{{ invitado.id_invitado }}"
+                                    {% if invitado in reservacion.invitados.all %}checked{% endif %}>
+                                <label class="form-check-label"
+                                    for="destinatarioEditar-{{ reservacion.id_reservacion }}-{{ invitado.id_invitado }}">
+                                    {{ invitado.nombre_completo }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 

@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.db.models import Count
 from django.contrib.auth.models import User
-from api.models import Reservacion, SalaJuntas
+from api.models import Reservacion, SalaJuntas,Invitado
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -12,6 +12,7 @@ import pandas as pd
 from datetime import timedelta
 from datetime import datetime
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 
 
 def graficos(request):
@@ -89,33 +90,38 @@ def graficos(request):
 def editar_reservacion(request, pk):
     if request.method == 'POST':
         try:
-            reservacion = Reservacion.objects.get(id_reservacion=pk)
-        except Reservacion.DoesNotExist:
-            return JsonResponse({'success': False}, status=404)
+            reservacion = get_object_or_404(Reservacion, id_reservacion=pk)
 
-        reservacion.evento = request.POST.get('evento_editar')
-        reservacion.comentarios = request.POST.get('comentarios_editar')
-        reservacion.sala_id = request.POST.get('salaJuntas_editar')
-        reservacion.fecha = request.POST.get('fechaReservacion_editar')
-        reservacion.hora_inicio = request.POST.get('horaInicio_editar')
-        reservacion.hora_final = request.POST.get('horaFinal_editar')
-        reservacion.save()
+            # Obtener datos enviados y conservar los originales si están vacíos
+            reservacion.evento = request.POST.get('evento_editar', reservacion.evento)
+            reservacion.comentarios = request.POST.get('comentarios_editar', reservacion.comentarios)
+            reservacion.sala_id = request.POST.get('salaJuntas_editar', reservacion.sala_id)
+            reservacion.fecha = request.POST.get('fechaReservacion_editar') or reservacion.fecha
+            reservacion.hora_inicio = request.POST.get('horaInicio_editar') or reservacion.hora_inicio
+            reservacion.hora_final = request.POST.get('horaFinal_editar') or reservacion.hora_final
+            
+            reservacion.save()
+            return JsonResponse({'success': True})
 
-        return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
     elif request.method == 'GET':
-        try:
-            reservacion = Reservacion.objects.get(id_reservacion=pk)
-        except Reservacion.DoesNotExist:
-            return JsonResponse({'success': False}, status=404)
-
+        reservacion = get_object_or_404(Reservacion, id_reservacion=pk)
         data = {
             'evento': reservacion.evento,
             'comentarios': reservacion.comentarios,
             'sala_id': reservacion.sala_id,
-            'fecha': reservacion.fecha,
-            'hora_inicio': reservacion.hora_inicio,
-            'hora_final': reservacion.hora_final,
         }
-
         return JsonResponse(data)
+
+def get_destinatarios_por_area(request):
+    try:
+        area_id = request.GET.get('area_id')
+        if not area_id:
+            return JsonResponse({'error': 'Área no especificada'}, status=400)
+        
+        invitados = Invitado.objects.filter(id_area=area_id).values('id_invitado', 'nombre_completo', 'correo')
+        return JsonResponse(list(invitados), safe=False)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

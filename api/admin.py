@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Area, Empleado, SalaJuntas, Invitado, Reservacion
+from .models import Area, Empleado, SalaJuntas, Invitado, Reservacion, ReservacionInvitado
 
 # Personalizando la vista de administración para el modelo Area
 @admin.register(Area)
@@ -34,8 +34,19 @@ class InvitadoAdmin(admin.ModelAdmin):
     ordering = ('nombre_completo',)
 
 # Personalizando la vista de administración para el modelo Reservacion
+class ReservacionInvitadoInline(admin.TabularInline):
+    model = ReservacionInvitado
+    extra = 1
+
 @admin.register(Reservacion)
 class ReservacionAdmin(admin.ModelAdmin):
     list_display = ('evento', 'fecha', 'hora_inicio', 'hora_final', 'sala', 'usuario')
     search_fields = ('evento', 'fecha')
     list_filter = ('fecha', 'sala','usuario')
+    inlines = [ReservacionInvitadoInline]
+
+# Personalizando la vista de administración para el modelo ReservacionInvitado
+@admin.register(ReservacionInvitado)
+class ReservacionInvitadoAdmin(admin.ModelAdmin):
+    list_display = ('reservacion', 'invitado')
+    search_fields = ('reservacion__evento', 'invitado__nombre_completo')
