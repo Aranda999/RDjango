@@ -27,6 +27,8 @@ from api.log.login_view import Login
 from api.log.login_view import Logout
 from api.tools.tools_view import graficos
 from api.tools.tools_view import get_destinatarios_por_area
+from api.tools.tools_view import get_invitados
+from api.tools.tools_view import guardar_invitados
 from api.security.security_view import Password
 from api.security.security_view import reset_password
 from django.contrib.auth.decorators import login_required 
@@ -46,6 +48,9 @@ urlpatterns = [
     path('reset-password/<uidb64>/<token>/', reset_password, name='reset_password'),
     path('get_ocupados/', get_ocupados, name='get_ocupados'),
     path('get_destinatarios/', get_destinatarios_por_area, name='get_destinatarios'),
+    path('get_invitados/', get_invitados, name='get_invitados'),
+    path('guardar_invitados/', guardar_invitados, name='guardar_invitados'),
+    
 
 ]
 

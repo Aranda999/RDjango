@@ -16,28 +16,28 @@ def Password(request):
     if request.method == 'POST':
         email = request.POST['email']
         try:
-            # Obtener al usuario por su email
+            # Busca el usuario que tenga asociado el email ingresado
             user = User.objects.get(email=email)
             
-            # Generar el uid (usuario codificado) y token
+            # Generar el uid token y se importa la libreria hasta arriba
             uid = urlsafe_base64_encode(str(user.pk).encode())
             token = PasswordResetTokenGenerator().make_token(user)
 
-            # Crear el enlace de restablecimiento
-            domain = request.get_host()  # Obtener el dominio actual, por ejemplo: localhost:8000
+            # Enlace para restablecer y obtiene el domino actual el localhost
+            domain = request.get_host()  
             reset_url = f"http://{domain}/reset-password/{uid}/{token}/"
 
-            # Crear el contenido del correo
+            # Mensaje del correo que se encuentra en el html correspondiente 
             subject = "Restablece tu contraseña"
             message = render_to_string('password_reset_email.html', {
                 'user': user,
                 'reset_url': reset_url,
             })
 
-            # Enviar el correo
+            # Envia correo
             send_mail(subject, message, settings.EMAIL_HOST_USER, [email])
 
-            # Mostrar un mensaje de éxito
+            # Mensajes sea la situacion que sea
             return render(request, template_name, {'mensaje': 'Correo enviado con éxito'})
         
         except User.DoesNotExist:
@@ -55,12 +55,12 @@ def reset_password(request, uidb64, token):
         user = None
 
     if user is not None and PasswordResetTokenGenerator().check_token(user, token):
-        # Si el token es válido, loguear al usuario directamente
-        login(request, user)  # Esto autentica al usuario automáticamente
-        # Redirigir al homeuser (o a donde desees)
-        return redirect('homeuser')  # Cambia 'homeuser' por el nombre de la URL a la que quieras redirigir
+        # Si el token es válido, loguear al usuario directamente 
+        login(request, user)  
+        # Redirigir al homeuser
+        return redirect('homeuser') 
     else:
         # Agregar mensaje de error a la sesión y redirigir a la página de login
         error_message = mark_safe('El enlace es inválido o ya ha expirado.<br> Por favor, solicita un nuevo enlace.')
-        messages.error(request, error_message)  # Agregar mensaje a la sesión
-        return redirect('login')  # Redirigir al login
+        messages.error(request, error_message) 
+        return redirect('login') 

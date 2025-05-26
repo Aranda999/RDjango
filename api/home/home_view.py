@@ -15,7 +15,7 @@ from django.core.mail import send_mail
 @login_required (login_url= 'login')
 def Home(request):
     if request.user.is_superuser:
-        template_view = "home.html"
+        template_view = "home-user.html"
         return render(request, template_name=template_view)
     else:
         return redirect("homeuser")

@@ -17,46 +17,57 @@
 
 <body>
     <!--Imagen del fondo principal-->
-    <img src="{% static 'img/FondoLogin.jpg' %}" style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; object-position: center; margin: 0; padding: 0; z-index: -1;">
+    <img src="{% static 'img/FondoLogin.jpg' %}" style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; 
+    object-fit: cover; object-position: center; margin: 0; padding: 0; z-index: -1;">
     <!-- Contenedor principal de login -->
     <div class="LoginContainer">
+        <!--Logos y titulos de la ventana de inicio-->
         <div class="Logos">
-            <img src="{% static 'img/IconCdmx.png' %}" alt="Logo 1" class="logo" style="height: 55px; width: 210px; position: relative; top: 10px; margin-left: 20px;">
-            <img src="{% static 'img/IconMetro.webp' %}" alt="Logo 2" class="logo" style="height: 60px; width: 120px; margin-left: 30px; position: relative; top: 10px;">
+            <img src="{% static 'img/IconCdmx.png' %}" alt="Logo 1" class="logo" 
+            style="height: 55px; width: 210px; position: relative; top: 10px; margin-left: 20px;">
+            <img src="{% static 'img/IconMetro.webp' %}" alt="Logo 2" class="logo" 
+            style="height: 60px; width: 120px; margin-left: 30px; position: relative; top: 10px;">
             <p class="title">BIENVENIDO LOGIN ACCESS</p>
             <i class="fa-solid fa-user" style="color: black; margin-left: 40px; position: relative; top: 40px; font-size: 30px;"></i>
             <i class="fa-solid fa-lock" style="color: black; margin-left: -30px; position: relative; top: 115px; font-size: 30px;"></i>
         </div>
-<!-- signin.html -->
+        <!--Codigo del formulario para autentificacion dentro de la ventana principal-->
         <form method="POST">
             {% csrf_token %}
-            <!-- Aquí van los campos del formulario -->
+            <!-- Titulos y inputs del formulario -->
             <div class="d-flex flex-column align-items-start" style="margin-left: 90px;">
                 <label for="floatingInput" style="color: black; font-size: 12px; font-weight: bold;">USERNAME</label>
-                <input type="text" class="form-control shadow-sm" id="floatingInput" name="username" placeholder="name@example.com" required style="width: 220px; height: 23px;">
+                <input type="text" class="form-control shadow-sm" id="floatingInput" name="username" placeholder="name@example.com" required 
+                style="width: 220px; height: 23px;">
             </div>
             <div class="d-flex flex-column align-items-start" style="margin-left: 90px;">
                 <label for="floatingPassword" style="color: black; font-size: 12px; font-weight: bold; position: relative; top: 35px;">PASSWORD</label>
                 <div style="position: relative;">
-                    <input type="password" class="form-control shadow-sm" id="floatingPassword" name="password" placeholder="Password" required style="width: 220px; height: 23px; position: relative; top: 35px;">
+                    <input type="password" class="form-control shadow-sm" id="floatingPassword" name="password" placeholder="Password" required 
+                    style="width: 220px; height: 23px; position: relative; top: 35px;">
                     <span id="togglePassword" style="position: absolute; top: 35px; right: 10px; cursor: pointer;">
                         <i class="fa fa-eye" aria-hidden="true"></i>
                     </span>
                 </div>
             </div>
+            <!--Boton que compara los datos ingresados en la base de datos para el acceso al sistema-->
             <button type="submit" class="bn btn-lg shadow-sm" 
             style="background-color: #ff6200; border-radius: 5px; width: 280px; height: 30px; position: relative; 
             top: 80px; display: flex; justify-content: center; align-items: center; margin-left: 55px; 
             border: 1px solid #000; font-size: 16px;">ACCESS</button>
-            <a href="{% url 'password' %}" class="" style="position: relative; top: 100px; margin-left: 130px; text-decoration: underline; color: black;">solicitar contraseña</a>
-
+            <!--Url que permite al usuario dirigirse al otra ventana para la recuperacion al acceso al sistema por medio de email-->
+            <a href="{% url 'password' %}" class="" 
+            style="position: relative; top: 100px; margin-left: 130px; text-decoration: underline; color: black;">solicitar contraseña</a>
+            <!--Imagen de adorno inferior del formulario-->
             <img src="{% static 'img/footer.jpg' %}" alt="Logo 2" class="logo" 
             style="height: 60px; width: 399px; margin-left: -1px; position: relative; top: 196px; 
             border-radius: 0px 0px 10px 10px; filter: sepia(0.5) saturate(1.5) hue-rotate(340deg);">
+            <!--Manejo de errores dentro del mismo formuario de autentificacion-->
             {% if error %}
             <p style="color: red; position: relative; top: 50px; margin-left: 120px;">{{ error }}</p>
             {% endif %}
         </form>
+        <!--Manejo de errores de cerrar sesion-->
         {% if messages %}
         <div class="alert alert-info" style = "height: 60px; position: relative; top: 50px;">
             {% for message in messages %}
@@ -104,6 +115,7 @@
     </style>
 
     <script>
+        /* Codigo para la visibilidad de contraseña, ver y ocultar por medio del icono */
         document.getElementById('togglePassword').addEventListener('click', function() {
             var passwordInput = document.getElementById('floatingPassword');
             var eyeIcon = this.querySelector('i');

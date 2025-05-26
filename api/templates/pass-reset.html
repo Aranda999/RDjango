@@ -19,30 +19,35 @@
 </head>
 
 <body>
-<!--Imagen del fondo principal-->
+<!--Imagen del fondo principal de la ventana-->
     <img src="{% static 'img/FondoSecundario.jpg' %}" style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; object-position: center; margin: 0; padding: 0; z-index: -1;">
-    <!-- Contenedor principal de login -->
+    <!-- Contenedor de los logos de la empresa -->
     <div class="LoginContainer">
         <div class="Logos">
             <img src="{% static 'img/IconCdmx.png' %}" alt="Logo 1" class="logo" style="height: 55px; width: 210px; position: relative; top: 10px; margin-left: 20px;">
             <img src="{% static 'img/IconMetro.webp' %}" alt="Logo 2" class="logo" style="height: 60px; width: 120px; margin-left: 30px; position: relative; top: 10px;">
         </div>
         <p class="title" style="margin-top: 40px;">INGRESA EL CORREO DE TU USUARIO</p>
+        <!--Creacion del formulario que contiene el metodo POST-->
         <form method="POST">
             {% csrf_token %}
+            <!--Indicadores del formulario-->
             <div class="d-flex flex-column align-items-start" style="margin-left: 90px; position: relative;">
                 <i class="fa-solid fa-user" style="color: black; position: absolute; top: 28px; left: -30px; font-size: 30px;"></i>
                 <label for="floatingInput" style="color: black; font-size: 12px; font-weight: bold;position: relative; top: 20px;">CORREO ELECTRÓNICO</label>
                 <input type="email" class="form-control shadow-sm" id="floatingInput" name="email" placeholder="name@example.com" required style="width: 220px; height: 23px; position: relative; top: 20px;">
             </div>
+            <!--Boton que permite enviar el formulario y realizar la funcion-->
             <button type="submit" class="btn btn-lg shadow-sm" style="background-color: #ff6200; 
             border-radius: 5px; width: 240px; height: 33px; position: relative; top: 50px; display: 
             flex; justify-content: center; align-items: center; margin-left: 78px; color: black; font-size: 15px; border: 1px solid black;">
                 ENVIAR <i class="fa-solid fa-paper-plane"></i>
             </button>
+            <!--URL que permite al usuario regresar al login -->
             <a href="{% url 'login' %}" style="text-decoration: underline; color: black; font-size: 14px; position: 
             relative; top: 70px;  margin-left: 125px; ">REGRESAR AL MENU</a>
         </form>
+        <!--Manejo de errores se muestran en la venatana-->
         <div style="position: relative; top: 80px; text-align: center;">
             {% if mensaje %}
                 <span style="color: green; font-size: 14px;">{{ mensaje }}</span>
@@ -50,6 +55,7 @@
                 <span style="color: red; font-size: 13px;">{{ error }}</span>
             {% endif %}
         </div>
+        <!--adorno imagen inferior-->
         <img src="{% static 'img/footer.jpg' %}" alt="Logo 2" class="logo" 
         style="height: 60px; width: 399px; margin-left: -1px; position: absolute; bottom: 0; 
         border-radius: 0px 0px 10px 10px; filter: sepia(0.5) saturate(1.5) hue-rotate(340deg);">
@@ -76,16 +82,17 @@
             font-size: 15px;
         }
 
-         /* Media query para dispositivos móviles */
+         /* Media query para que la ventana empiece a ser responsiva */
         @media (max-width: 768px) {
         .login-container {
-            width: 90%; /* Ancho del contenedor en dispositivos móviles */
-            margin: 20px auto; /* Margen superior e inferior en dispositivos móviles */
+            width: 90%;
+            margin: 20px auto; 
         }
         }
+        /*Vuelve a ajustar los logos */
         @media (max-width: 768px) {
         .logo {
-        width: 30%; /* ajusta el ancho según sea necesario */
+        width: 30%; 
         }
         }
     </style>

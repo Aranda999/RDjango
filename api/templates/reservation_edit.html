@@ -6,11 +6,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 
 </head>
-<!-- antes de lo malo -->
+<!-- TODO BIEN HASTA AQUI  -->
 
 <body>
 {% for reservacion in reservaciones %}
@@ -85,20 +84,11 @@
                                 <p style="font-size: 12px; color: gray; margin-bottom: 5px;">Hora de fin actual: {{ reservacion.hora_final }}</p>
                             </div>
                         </div>
-                        <div class="mb-2">
-                            <input type="checkbox" id="notificar_edicion_{{ reservacion.id_reservacion }}" name="notificar_edicion">
-                            <label for="notificar_edicion_{{ reservacion.id_reservacion }}" style="color: black; font-weight: bold;">
-                                Notificar actualización a los destinatarios
-                            </label>
-                        </div>
-
-                        <!-- Botón para seleccionar destinatarios (se oculta si el checkbox no está marcado) -->
-                        <div id="seleccionDestinatariosEditar_{{ reservacion.id_reservacion }}" style="display: none;">
-                            <button type="button" class="btn btn-secondary" data-bs-toggle="modal"
-                                data-bs-target="#modalEditarDestinatarios{{ reservacion.id_reservacion }}">
-                                Seleccionar destinatarios
-                            </button>
-                        </div>
+                        <!-- Botón para abrir el modal de gestión de invitados -->
+                        <button type="button" class="btn btn-warning abrirModalInvitados" data-bs-toggle="modal"
+                            data-bs-target="#modalGestionarInvitados" data-reservacion-id="{{ reservacion.id_reservacion }}">
+                            Gestionar Invitados
+                        </button>
 
                         <div id="horarios-ocupados-editar-{{ reservacion.id_reservacion }}"
                             style="color: red; text-align: center; font-size: 14px;"></div>
@@ -113,6 +103,81 @@
     </div>
 {% endfor %}
 
+    <!-- Modal para gestionar invitados -->
+    <div class="modal fade" id="modalGestionarInvitados" tabindex="-1" aria-labelledby="modalGestionarInvitadosLabel"
+        aria-hidden="true" data-reservacion-id="">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalGestionarInvitadosLabel">Gestionar Invitados</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="listaInvitados"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var invitadosSeleccionados = [];
+
+        document.addEventListener("DOMContentLoaded", function() {
+            // Manejar la apertura del modal y carga de invitados
+            document.querySelectorAll(".abrirModalInvitados").forEach(button => {
+                button.addEventListener("click", function() {
+                    let reservacionId = this.getAttribute("data-reservacion-id");
+                    reservacionId = parseInt(reservacionId, 10);
+
+                    if (!isNaN(reservacionId)) {
+                        document.getElementById("modalGestionarInvitados").setAttribute("data-reservacion-id", reservacionId);
+                        cargarInvitados(reservacionId);
+                    } else {
+                        console.error("Error: ID de reservación no válido.");
+                    }
+                });
+            });
+
+            function cargarInvitados(reservacionId) {
+                fetch(`/get_invitados/?reservacion_id=${reservacionId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        invitadosSeleccionados = data.invitados_actuales.map(inv => inv.id_invitado);
+                        mostrarInvitados(data.invitados_actuales, data.invitados_disponibles);
+                    })
+                    .catch(error => console.error("Error al obtener invitados:", error));
+            }
+
+            function mostrarInvitados(actuales, disponibles) {
+                let contenedor = document.getElementById("listaInvitados");
+                contenedor.innerHTML = "";
+
+                [...actuales, ...disponibles].forEach(invitado => {
+                    let checked = invitadosSeleccionados.includes(invitado.id_invitado) ? "checked" : "";
+                    contenedor.innerHTML += `
+                        <div class="form-check">
+                            <input class="form-check-input invitado-checkbox" type="checkbox" value="${invitado.id_invitado}" ${checked}>
+                            <label class="form-check-label">${invitado.nombre_completo}</label>
+                        </div>
+                    `;
+                });
+
+                document.querySelectorAll(".invitado-checkbox").forEach(input => {
+                    input.addEventListener("change", function() {
+                        let invitadoId = parseInt(this.value, 10);
+                        if (this.checked) {
+                            if (!invitadosSeleccionados.includes(invitadoId)) {
+                                invitadosSeleccionados.push(invitadoId);
+                            }
+                        } else {
+                            invitadosSeleccionados = invitadosSeleccionados.filter(id => id !== invitadoId);
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+
 
 
     <script>
@@ -121,7 +186,7 @@
             $('[id^="editarReservacion"]').each(function () {
                 var id_reservacion = $(this).attr('id').replace('editarReservacion', '');
 
-                // Asignar evento de reset al mostrar el modal
+                // Asignar evento de reset the modal
                 $(this).on('show.bs.modal', function () {
                     $('#formEditarReservacion' + id_reservacion)[0].reset();
                     $('#error-message-editar-' + id_reservacion).html('');
@@ -204,9 +269,26 @@
                         }
                     }
                 });
-
-                // Evento click para el botón de editar
                 $('#boton-editar-' + id_reservacion).on('click', function () {
+                    if (invitadosSeleccionados.length === 0) {
+                        // Obtener los invitados actuales de la reservación
+                        $.ajax({
+                            type: 'GET',
+                            url: '/get_invitados/',
+                            data: {
+                                'reservacion_id': id_reservacion
+                            },
+                            success: function (data) {
+                                invitadosSeleccionados = data.invitados_actuales.map(inv => inv.id_invitado);
+                                enviarSolicitudEditarReservacion(id_reservacion);
+                            }
+                        });
+                    } else {
+                        enviarSolicitudEditarReservacion(id_reservacion);
+                    }
+                });
+
+                function enviarSolicitudEditarReservacion(id_reservacion) {
                     $.ajax({
                         type: 'POST',
                         url: '/editar-reservacion/' + id_reservacion + '/',
@@ -217,6 +299,7 @@
                             fechaReservacion_editar: $('#fechaReservacion_editar_' + id_reservacion).val(),
                             horaInicio_editar: $('#horaInicio_editar_' + id_reservacion).val(),
                             horaFinal_editar: $('#horaFinal_editar_' + id_reservacion).val(),
+                            invitados: invitadosSeleccionados,
                             csrfmiddlewaretoken: '{{ csrf_token }}'
                         },
                         success: function (data) {
@@ -231,7 +314,7 @@
                             }
                         }
                     });
-                });
+                }
 
                 // Función para obtener horarios ocupados
                 function getHorariosOcupados(id_reservacion) {
@@ -292,7 +375,7 @@
     </script>
 
 
-<div class="modal fade" id="modalEditarDestinatarios{{ reservacion.id_reservacion }}" tabindex="-1"
+<!-- <div class="modal fade" id="modalEditarDestinatarios{{ reservacion.id_reservacion }}" tabindex="-1"
     aria-labelledby="modalEditarDestinatariosLabel{{ reservacion.id_reservacion }}" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content" style="border-radius: 15px;">
@@ -304,7 +387,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <!-- Contenedor de pestañas por áreas -->
+                Contenedor de pestañas por áreas
                 <ul class="nav nav-tabs">
                     {% for area in areas %}
                     <li class="nav-item">
@@ -318,7 +401,6 @@
                     {% endfor %}
                 </ul>
 
-                <!-- Contenido de cada pestaña -->
                 <div class="tab-content mt-3">
                     {% for area in areas %}
                     <div class="tab-pane fade {% if forloop.first %}show active{% endif %}"
@@ -345,7 +427,7 @@
             </div>
         </div>
     </div>
-</div>
+</div> -->
 
 
 

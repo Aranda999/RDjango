@@ -13,6 +13,11 @@ from datetime import timedelta
 from datetime import datetime
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import get_object_or_404
+from api.models import Reservacion, Invitado, ReservacionInvitado
 
 
 def graficos(request):
@@ -44,7 +49,7 @@ def graficos(request):
 
     plt.figure(figsize=(8, 8))
     plt.pie(cantidad_reservaciones_sala, labels=salas, autopct='%1.1f%%', startangle=140, colors=sns.color_palette("pastel"), textprops={'fontsize': 20})
-    plt.title("Porcentaje de Reservaciones por Sala de Juntas (Total)", fontsize=20)
+    plt.title("Reservaciones por Sala de Juntas (Total)", fontsize=20)
     plt.tight_layout()
     buffer_sala_total = io.BytesIO()
     plt.savefig(buffer_sala_total, format='png')
@@ -101,19 +106,21 @@ def editar_reservacion(request, pk):
             reservacion.hora_final = request.POST.get('horaFinal_editar') or reservacion.hora_final
             
             reservacion.save()
+
+            # Procesar invitados seleccionados
+            invitados_seleccionados = request.POST.getlist('invitados[]')
+            if not invitados_seleccionados:
+                invitados_seleccionados = request.POST.get('invitados').strip('[]').split(',')
+                invitados_seleccionados = [int(i) for i in invitados_seleccionados if i]
+            
+            ReservacionInvitado.objects.filter(reservacion=reservacion).delete()
+            for invitado_id in invitados_seleccionados:
+                ReservacionInvitado.objects.create(reservacion=reservacion, invitado_id=invitado_id)
+
             return JsonResponse({'success': True})
 
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
-
-    elif request.method == 'GET':
-        reservacion = get_object_or_404(Reservacion, id_reservacion=pk)
-        data = {
-            'evento': reservacion.evento,
-            'comentarios': reservacion.comentarios,
-            'sala_id': reservacion.sala_id,
-        }
-        return JsonResponse(data)
 
 def get_destinatarios_por_area(request):
     try:
@@ -123,5 +130,57 @@ def get_destinatarios_por_area(request):
         
         invitados = Invitado.objects.filter(id_area=area_id).values('id_invitado', 'nombre_completo', 'correo')
         return JsonResponse(list(invitados), safe=False)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+def get_invitados(request):
+    reservacion_id = request.GET.get('reservacion_id')
+    if not reservacion_id or not reservacion_id.isdigit():  # Validación extra
+        return JsonResponse({'error': 'ID de reservación no válido'}, status=400)
+
+    reservacion_id = int(reservacion_id)  # Convertir a entero correctamente
+    reservacion = get_object_or_404(Reservacion, id_reservacion=reservacion_id)
+
+    invitados_actuales_ids = list(map(int, reservacion.reservacioninvitado_set.values_list('invitado_id', flat=True)))
+
+    invitados_actuales = list(Invitado.objects.filter(id_invitado__in=invitados_actuales_ids).values('id_invitado', 'nombre_completo'))
+    invitados_disponibles = list(Invitado.objects.exclude(id_invitado__in=invitados_actuales_ids).values('id_invitado', 'nombre_completo'))
+
+    return JsonResponse({'invitados_actuales': invitados_actuales, 'invitados_disponibles': invitados_disponibles})
+
+
+
+@csrf_exempt
+def guardar_invitados(request):
+    if request.method != "POST":
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+    try:
+        data = json.loads(request.body)
+        reservacion_id = data.get('reservacion_id')
+        invitados_ids = data.get('invitados', [])
+
+        reservacion = get_object_or_404(Reservacion, id_reservacion=reservacion_id)
+        invitados_actuales_ids = list(reservacion.reservacioninvitado_set.values_list('invitado_id', flat=True))
+
+        # Determinar invitados nuevos y eliminados
+        invitados_a_agregar = set(invitados_ids) - set(invitados_actuales_ids)
+        invitados_a_eliminar = set(invitados_actuales_ids) - set(invitados_ids)
+
+        # Agregar nuevos invitados
+        nuevos_invitados = [
+            ReservacionInvitado(reservacion=reservacion, invitado=Invitado.objects.get(id_invitado=invitado_id))
+            for invitado_id in invitados_a_agregar
+        ]
+        if nuevos_invitados:
+            ReservacionInvitado.objects.bulk_create(nuevos_invitados)
+
+        # Eliminar invitados removidos
+        if invitados_a_eliminar:
+            ReservacionInvitado.objects.filter(reservacion=reservacion, invitado_id__in=invitados_a_eliminar).delete()
+
+        return JsonResponse({'success': True, 'message': 'Invitados actualizados correctamente'})
+
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
