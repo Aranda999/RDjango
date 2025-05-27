@@ -11,11 +11,12 @@ from api.filters import ReservacionFilter
 from datetime import timedelta
 from django.utils import timezone
 from django.core.mail import send_mail
+from django.urls import reverse
 
 @login_required (login_url= 'login')
 def Home(request):
     if request.user.is_superuser:
-        template_view = "home-user.html"
+        template_view = "home.html"
         return render(request, template_name=template_view)
     else:
         return redirect("homeuser")
@@ -124,6 +125,7 @@ def Reservation(request):
             destinatarios_correo = [invitado.correo for invitado in Invitado.objects.filter(id_invitado__in=destinatarios_ids)]
             if destinatarios_correo:
                 subject = f"Confirmación de Reservación: {evento}"
+                reservas_url = request.build_absolute_uri(reverse('reservas_semanales'))
                 for invitado in Invitado.objects.filter(id_invitado__in=destinatarios_ids):
                     message = f"""
                         <h2>📅 Confirmación de Reservación</h2>
@@ -136,12 +138,13 @@ def Reservation(request):
                             <li>🕒 Hora de finalización: {hora_final}</li>
                             <li>🏢 Sala: {sala}</li>
                         </ul>
+                        <p>Puedes checar las reservaciones para esta semana en este enlace: <a href="{reservas_url}">Reservas semanales</a></p>
                         <p>Atentamente,</p>
                         <p>{request.user.username}</p>
                     """
                     send_mail(subject, "", 'noreply@miapp.com', [invitado.correo], html_message=message)
 
-        messages.success(request, f"Reservación realizada con éxito para '{evento}'.")
+                messages.success(request, f"Reservación realizada con éxito para '{evento}'.")
 
 
         return redirect('reservation')

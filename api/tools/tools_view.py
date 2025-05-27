@@ -19,78 +19,104 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
 from api.models import Reservacion, Invitado, ReservacionInvitado
 from django.core.mail import send_mail
-
+from datetime import date, timedelta
+from collections import defaultdict
 
 def graficos(request):
-    # --- Gráfico 1: Reservaciones por usuario ---
-    reservaciones_por_usuario = Reservacion.objects.values('usuario__username').annotate(total_reservaciones=Count('id_reservacion')).order_by('-total_reservaciones')
-    usuarios = [item['usuario__username'] for item in reservaciones_por_usuario]
-    cantidad_reservaciones_usuario = [item['total_reservaciones'] for item in reservaciones_por_usuario]
+    mes = request.GET.get('mes')
+    semana = request.GET.get('semana')
+    ano = request.GET.get('ano')
 
-    df = pd.DataFrame({'usuario': usuarios, 'cantidad': cantidad_reservaciones_usuario})
-    plt.figure(figsize=(10, 6))
-    colors = sns.color_palette("viridis", len(df))
-    sns.barplot(x='usuario', y='cantidad', data=df, palette=colors)
-    plt.xlabel("Usuario", fontsize=16)
-    plt.ylabel("Número de Reservaciones", fontsize=16)
-    plt.title("Total de Reservaciones por Usuario", fontsize=18)
-    plt.xticks(rotation=45, ha="right", fontsize=14)
-    plt.yticks(fontsize=14)
-    plt.tight_layout()
-    buffer_usuario = io.BytesIO()
-    plt.savefig(buffer_usuario, format='png')
-    buffer_usuario.seek(0)
-    imagen_usuario_base64 = base64.b64encode(buffer_usuario.read()).decode('utf-8')
-    plt.close()
+    reservaciones = Reservacion.objects.all()
+    filtros_seleccionados = False
 
-    # --- Gráfico 2: Reservaciones por sala de juntas (total) ---
-    reservaciones_por_sala = Reservacion.objects.values('sala__nombre').annotate(total_reservaciones=Count('id_reservacion')).order_by('-total_reservaciones')
-    salas = [item['sala__nombre'] for item in reservaciones_por_sala]
-    cantidad_reservaciones_sala = [item['total_reservaciones'] for item in reservaciones_por_sala]
-
-    plt.figure(figsize=(8, 8))
-    plt.pie(cantidad_reservaciones_sala, labels=salas, autopct='%1.1f%%', startangle=140, colors=sns.color_palette("pastel"), textprops={'fontsize': 20})
-    plt.title("Reservaciones por Sala de Juntas (Total)", fontsize=20)
-    plt.tight_layout()
-    buffer_sala_total = io.BytesIO()
-    plt.savefig(buffer_sala_total, format='png')
-    buffer_sala_total.seek(0)
-    imagen_sala_total_base64 = base64.b64encode(buffer_sala_total.read()).decode('utf-8')
-    plt.close()
-
-    # --- Gráfico 3: Reservaciones por sala de juntas (separado) ---
-    graficos_por_sala = {}
-    salas_juntas = SalaJuntas.objects.all()
-    for sala in salas_juntas:
-        reservas_sala = Reservacion.objects.filter(sala=sala).values('usuario__username').annotate(total_reservaciones=Count('id_reservacion')).order_by('-total_reservaciones')
-        usuarios_sala = [item['usuario__username'] for item in reservas_sala]
-        cantidad_reservaciones_sala_usuario = [item['total_reservaciones'] for item in reservas_sala]
-
-        df_sala = pd.DataFrame({'usuario': usuarios_sala, 'cantidad': cantidad_reservaciones_sala_usuario})
-        plt.figure(figsize=(11, 8))
-        colors = sns.color_palette("mako", len(df_sala))
-        sns.barplot(x='usuario', y='cantidad', data=df_sala, palette=colors)
-        plt.xlabel("Usuario", fontsize=20)
-        plt.ylabel(f"Reservaciones en {sala.nombre}", fontsize=18)
-        plt.title(f"Reservaciones por el Usuario en Sala: {sala.nombre}", fontsize=20)
-        plt.xticks(rotation=45, ha="right", fontsize=22)
-        plt.yticks(fontsize=20)
-        plt.tight_layout()
-        buffer_sala_individual = io.BytesIO()
-        plt.savefig(buffer_sala_individual, format='png')
-        buffer_sala_individual.seek(0)
-        imagen_sala_individual_base64 = base64.b64encode(buffer_sala_individual.read()).decode('utf-8')
-        plt.close()
-        graficos_por_sala[sala.nombre] = imagen_sala_individual_base64
+    if mes and ano:
+        if semana:
+            # Filtro por semana
+            first_day = date(int(ano), int(mes), 1)
+            first_day_weekday = first_day.weekday()
+            days_offset = (int(semana) - 1) * 7 - first_day_weekday
+            if days_offset < 0:
+                days_offset = 0
+            start_date = first_day + timedelta(days=days_offset)
+            end_date = start_date + timedelta(days=6)
+            reservaciones = reservaciones.filter(fecha__range=[start_date, end_date])
+        else:
+            # Filtro por mes
+            reservaciones = reservaciones.filter(fecha__month=mes, fecha__year=ano)
+        filtros_seleccionados = True
 
     context = {
-        'imagen_usuario': imagen_usuario_base64,
-        'imagen_sala_total': imagen_sala_total_base64,
-        'graficos_por_sala': graficos_por_sala,
-        'salas_juntas': salas_juntas,
+        'anos': range(2025, datetime.now().year + 5),
     }
-    return render(request, 'graficos.html', context)
 
+    if filtros_seleccionados:
+        # --- Gráfico 1: Reservaciones por usuario ---
+        reservaciones_por_usuario = reservaciones.values('usuario__username').annotate(total_reservaciones=Count('id_reservacion')).order_by('-total_reservaciones')
+        usuarios = [item['usuario__username'] for item in reservaciones_por_usuario]
+        cantidad_reservaciones_usuario = [item['total_reservaciones'] for item in reservaciones_por_usuario]
+
+        df = pd.DataFrame({'usuario': usuarios, 'cantidad': cantidad_reservaciones_usuario})
+        plt.figure(figsize=(10, 6))
+        colors = sns.color_palette("viridis", len(df))
+        sns.barplot(x='usuario', y='cantidad', data=df, palette=colors)
+        plt.xlabel("Usuario", fontsize=16)
+        plt.ylabel("Número de Reservaciones", fontsize=16)
+        plt.title("Total de Reservaciones por Usuario", fontsize=18)
+        plt.xticks(rotation=45, ha="right", fontsize=14)
+        plt.yticks(fontsize=14)
+        plt.tight_layout()
+        buffer_usuario = io.BytesIO()
+        plt.savefig(buffer_usuario, format='png')
+        buffer_usuario.seek(0)
+        imagen_usuario_base64 = base64.b64encode(buffer_usuario.read()).decode('utf-8')
+        plt.close()
+
+        # --- Gráfico 2: Reservaciones por sala de juntas (en total) ---
+        reservaciones_por_sala = reservaciones.values('sala__nombre').annotate(total_reservaciones=Count('id_reservacion')).order_by('-total_reservaciones')
+        salas = [item['sala__nombre'] for item in reservaciones_por_sala]
+        cantidad_reservaciones_sala = [item['total_reservaciones'] for item in reservaciones_por_sala]
+
+        plt.figure(figsize=(8, 8))
+        plt.pie(cantidad_reservaciones_sala, labels=salas, autopct='%1.1f%%', startangle=140, colors=sns.color_palette("pastel"), textprops={'fontsize': 20})
+        plt.title("Reservaciones por Sala de Juntas (Total)", fontsize=20)
+        plt.tight_layout()
+        buffer_sala_total = io.BytesIO()
+        plt.savefig(buffer_sala_total, format='png')
+        buffer_sala_total.seek(0)
+        imagen_sala_total_base64 = base64.b64encode(buffer_sala_total.read()).decode('utf-8')
+        plt.close()
+
+        # --- Gráfico 3: Reservaciones por sala de juntas (separado) ---
+        graficos_por_sala = {}
+        salas_juntas = SalaJuntas.objects.all()
+        for sala in salas_juntas:
+            reservas_sala = reservaciones.filter(sala=sala).values('usuario__username').annotate(total_reservaciones=Count('id_reservacion')).order_by('-total_reservaciones')
+            usuarios_sala = [item['usuario__username'] for item in reservas_sala]
+            cantidad_reservaciones_sala_usuario = [item['total_reservaciones'] for item in reservas_sala]
+
+            df_sala = pd.DataFrame({'usuario': usuarios_sala, 'cantidad': cantidad_reservaciones_sala_usuario})
+            plt.figure(figsize=(11, 8))
+            colors = sns.color_palette("mako", len(df_sala))
+            sns.barplot(x='usuario', y='cantidad', data=df_sala, palette=colors)
+            plt.xlabel("Usuario", fontsize=20)
+            plt.ylabel(f"Reservaciones en {sala.nombre}", fontsize=18)
+            plt.title(f"Reservaciones por el Usuario en Sala: {sala.nombre}", fontsize=20)
+            plt.xticks(rotation=45, ha="right", fontsize=22)
+            plt.yticks(fontsize=20)
+            plt.tight_layout()
+            buffer_sala_individual = io.BytesIO()
+            plt.savefig(buffer_sala_individual, format='png')
+            buffer_sala_individual.seek(0)
+            imagen_sala_individual_base64 = base64.b64encode(buffer_sala_individual.read()).decode('utf-8')
+            plt.close()
+            graficos_por_sala[sala.nombre] = imagen_sala_individual_base64
+
+        context['imagen_usuario'] = imagen_usuario_base64
+        context['imagen_sala_total'] = imagen_sala_total_base64
+        context['graficos_por_sala'] = graficos_por_sala
+
+    return render(request, 'graficos.html', context)
 
 #Bueno bueno
 def editar_reservacion(request, pk):
@@ -237,3 +263,34 @@ def guardar_invitados(request):
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+    
+
+
+def obtener_semanas_reservaciones():
+    hoy = date.today()
+    reservas = Reservacion.objects.filter(fecha__gte=hoy).order_by('fecha', 'hora_inicio')
+
+    # Agrupar por semana (año, número de semana)
+    semanas = defaultdict(list)
+    for reserva in reservas:
+        anio, semana, _ = reserva.fecha.isocalendar()
+        semanas[(anio, semana)].append(reserva)
+
+    return semanas
+
+def vista_reservas_semanales(request):
+    semanas_reservas = obtener_semanas_reservaciones()
+
+    # Construir datos para el template
+    datos = []
+    for (anio, semana), reservas in semanas_reservas.items():
+        primer_dia_semana = date.fromisocalendar(anio, semana, 1)
+        ultimo_dia_semana = primer_dia_semana + timedelta(days=6)
+        datos.append({
+            'rango': f"Semana del {primer_dia_semana.strftime('%d %b')} al {ultimo_dia_semana.strftime('%d %b')}",
+            'reservas': reservas
+        })
+
+    datos.sort(key=lambda x: x['rango'])  # Ordenar cronológicamente
+
+    return render(request, 'reservas_semanales.html', {'datos': datos})

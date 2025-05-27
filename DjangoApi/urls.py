@@ -16,6 +16,7 @@ Including another URLconf
 """
 
 from django.contrib import admin
+from django.urls import reverse
 from django.urls import path, reverse_lazy
 from django.urls import path
 from api.home.home_view import Home
@@ -29,6 +30,7 @@ from api.tools.tools_view import graficos
 from api.tools.tools_view import get_destinatarios_por_area
 from api.tools.tools_view import get_invitados
 from api.tools.tools_view import guardar_invitados
+from api.tools.tools_view import vista_reservas_semanales
 from api.security.security_view import Password
 from api.security.security_view import reset_password
 from django.contrib.auth.decorators import login_required 
@@ -50,6 +52,7 @@ urlpatterns = [
     path('get_destinatarios/', get_destinatarios_por_area, name='get_destinatarios'),
     path('get_invitados/', get_invitados, name='get_invitados'),
     path('guardar_invitados/', guardar_invitados, name='guardar_invitados'),
+    path('reservas-publico/', vista_reservas_semanales, name='reservas_semanales'),
     
 
 ]

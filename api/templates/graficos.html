@@ -9,34 +9,66 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
     crossorigin="anonymous" referrerpolicy="no-referrer"/>
+    
 </head>
 <body>
     <div id="spinner"
-        class="show position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+    class="show position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
         <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
             <span class="sr-only">Loading...</span>
         </div>
     </div>
-    <img src="{% static 'img/FondoWindow1.jpg' %}" class="imagen-principal" alt="Imagen de fondo principal"
-        style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; object-position: center; margin: 0; padding: 0; z-index: -1;">
-
     <div class="LoginContainer">
         <div class="Logos">
             <img src="{% static 'img/IconCdmx.png' %}" alt="Logo 1" class="logo-1">
             <img src="{% static 'img/IconMetro.webp' %}" alt="Logo 2" class="logo-2">
         </div>
 
-        <!-- Icono para agregar reservación -->
         <a href="{% url 'home' %}"
-            style="text-decoration: underline; color: black; position: absolute; top: 87px; right: 620px;">
+        style="text-decoration: underline; color: black; position: absolute; top: 77px; right: 680px;">
             <i class="fa-solid fa-right-from-bracket"></i>
             Home
         </a>
 
         <p>Usuario: {{ request.user.username }}</p>
 
+        <div class="formulario-filtro">
+            <form method="get">
+                <label>Mes:</label>
+                <select name="mes" id="mes">
+                    <option value="">Seleccione un mes</option>
+                    <option value="1" {% if request.GET.mes == '1' %}selected{% endif %}>Enero</option>
+                    <option value="2" {% if request.GET.mes == '2' %}selected{% endif %}>Febrero</option>
+                    <option value="3" {% if request.GET.mes == '3' %}selected{% endif %}>Marzo</option>
+                    <option value="4" {% if request.GET.mes == '4' %}selected{% endif %}>Abril</option>
+                    <option value="5" {% if request.GET.mes == '5' %}selected{% endif %}>Mayo</option>
+                    <option value="6" {% if request.GET.mes == '6' %}selected{% endif %}>Junio</option>
+                    <option value="7" {% if request.GET.mes == '7' %}selected{% endif %}>Julio</option>
+                    <option value="8" {% if request.GET.mes == '8' %}selected{% endif %}>Agosto</option>
+                    <option value="9" {% if request.GET.mes == '9' %}selected{% endif %}>Septiembre</option>
+                    <option value="10" {% if request.GET.mes == '10' %}selected{% endif %}>Octubre</option>
+                    <option value="11" {% if request.GET.mes == '11' %}selected{% endif %}>Noviembre</option>
+                    <option value="12" {% if request.GET.mes == '12' %}selected{% endif %}>Diciembre</option>
+                </select>
+                <label>Semana:</label>
+                <select name="semana" id="semana">
+                    <option value="">Todo el mes</option>
+                    {% for i in '123456' %}
+                        <option value="{{ forloop.counter }}" {% if request.GET.semana == forloop.counter|stringformat:"s" %}selected{% endif %}>Semana {{ forloop.counter }}</option>
+                    {% endfor %}
+                </select>
+                <label>Año:</label>
+                <select name="ano" id="ano">
+                    {% for ano in anos %}
+                        <option value="{{ ano }}" {% if ano|stringformat:"s" == request.GET.ano %}selected{% endif %}>{{ ano }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Ver gráficas</button>
+            </form>
+        </div>
+
         <div class="tab-container">
-            <div class="tabs" style="margin-top: -15px;">
+            <div class="tabs">
                 <button class="tab active" onclick="openTab(event, 'usuarios')">Reservaciones por Usuario</button>
                 <button class="tab" onclick="openTab(event, 'salas_total')">Reservaciones por Sala (Total)</button>
                 <button class="tab" onclick="openTab(event, 'salas_separado')">Reservaciones por Sala (Separado)</button>
@@ -48,28 +80,24 @@
                     <p>No hay suficientes datos para mostrar este gráfico.</p>
                 {% endif %}
             </div>
-        
-            <div id="salas_total" class="tab-content">
+            <div id="salas_total" class="tab-content" style="padding: 0px; margin: 0px;">
                 {% if imagen_sala_total %}
-                    <img src="data:image/png;base64,{{ imagen_sala_total }}" alt="Gráfico de Reservaciones por Sala (Total)" class="graphic2">
+                <img src="data:image/png;base64,{{ imagen_sala_total }}" alt="Gráfico de Reservaciones por Sala (Total)" class="graphic2" style="max-width: 55%; max-height: 300px; width: auto; height: auto; display: block; margin: 0px auto; object-fit: contain;">
                 {% else %}
-                    <p>No hay suficientes datos para mostrar este gráfico.</p>
+                    <p style="margin: 0px; padding: 0px;">No hay suficientes datos para mostrar este gráfico.</p>
                 {% endif %}
             </div>
-        
             <div id="salas_separado" class="tab-content">
                 {% if graficos_por_sala %}
-                    <div class="tab-container-interno">
-                        <div class="tabs-interno">
+                    <div class="tab-container-interno" style="margin-top: 0px;">
+                        <div class="tabs-interno" style="margin-bottom: 0px;">
                             {% for nombre_sala, imagen_sala in graficos_por_sala.items %}
                                 <button class="tab-interno {% if forloop.counter == 1 %}active{% endif %}" onclick="openTabInterno(event, '{{ nombre_sala }}')">{{ nombre_sala }}</button>
                             {% endfor %}
                         </div>
-            
                         {% for nombre_sala, imagen_sala in graficos_por_sala.items %}
-                            <div id="{{ nombre_sala }}" class="tab-content-interno {% if forloop.counter == 1 %}active{% endif %}">
-                                <h4>Sala: {{ nombre_sala }}</h4>
-                                <img src="data:image/png;base64,{{ imagen_sala }}" alt="Gráfico de Reservaciones por Usuario en {{ nombre_sala }}" class="graphic3">
+                            <div id="{{ nombre_sala }}" class="tab-content-interno {% if forloop.counter == 1 %}active{% endif %}" style="padding-top: 0px;">
+                                <img src="data:image/png;base64,{{ imagen_sala }}" alt="Gráfico de Reservaciones por Usuario en {{ nombre_sala }}" class="graphic3" style="margin-top: 0px;">
                             </div>
                         {% endfor %}
                     </div>
@@ -79,26 +107,25 @@
             </div>
         </div>
     </div>
-
+    
     <style>
-        .imagen-principal {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            object-fit: cover;
-            object-position: center;
+        body {
             margin: 0;
             padding: 0;
-            z-index: -1;
+            background-image: url("{% static 'img/FondoWindow1.jpg' %}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .LoginContainer {
-            width: 720px;
-            height: auto; /* Ajustar altura automáticamente */
-            margin: 40px auto;
-            margin-top: 40px;
+            width: 800px;
+            max-width: 90%;
+            height: auto;
             background-color: #fff;
             border: 1px solid #ddd;
             border-radius: 10px;
@@ -110,18 +137,42 @@
             background-size: 399px 60px;
             background-repeat: repeat-x;
             background-position: bottom;
-            padding-bottom: 60px; /* Ajustar el padding inferior para que no se superponga con la imagen de fondo */
+            padding-bottom: 60px;
+            padding: 20px;
+            box-sizing: border-box;
+            padding-bottom: 60px;
+            
+        }
+
+        .formulario-filtro {
+            padding: 8px;
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 10px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .tab-container {
+            width: 90%;
+            padding: 2px;
+            font-size: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ccc;
+            margin-top: 0px;
         }
 
         .Logos {
             display: flex;
             gap: 40px;
-            margin-top: 20px;
         }
 
         .logo-1, .logo-2 {
             height: 40px;
         }
+
         .tab, .tab-content {
             font-size: 17px;
         }
@@ -137,17 +188,6 @@
             font-size: 2em;
             color: black;
             text-decoration: none;
-        }
-        .tab-container {
-            width: 90%;
-            margin: 20px auto;
-            padding: 2px;
-            font-size: 12px;
-        }
-
-        .tabs {
-            display: flex;
-            border-bottom: 1px solid #ccc;
         }
 
         .tab, .tab-interno {
@@ -209,10 +249,6 @@
         window.addEventListener('load', function () {
             document.getElementById('spinner').style.display = 'none';
         });
-        $('#reservacionModal').on('hidden.bs.modal', function () {
-            $(this).find('input, textarea').val('');
-            $(this).find('select').prop('selectedIndex', 0);
-        });
     </script>
 
     <script>
@@ -237,13 +273,63 @@
         function openTabInterno(evt, tabName) {
             openTabGeneric(evt, tabName, "tab-content-interno", "tab-interno");
         }
+
+        function generarSemanas() {
+            var mes = document.getElementById("mes").value;
+            var semanaSelect = document.getElementById("semana");
+            semanaSelect.innerHTML = "";
+
+            if (mes !== "") {
+                var option = document.createElement("option");
+                option.value = "";
+                option.text = "Todo el mes";
+                semanaSelect.appendChild(option);
+
+                var fecha = new Date(2024, mes - 1, 1);
+                var primerDia = fecha.getDay();
+                var diasEnMes = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0).getDate();
+                var semanas = Math.ceil((diasEnMes + primerDia) / 7);
+
+                for (var i = 1; i <= semanas; i++) {
+                    var option = document.createElement("option");
+                    option.value = i;
+                    option.text = "Semana " + i;
+                    semanaSelect.appendChild(option);
+                }
+            } else {
+                var option = document.createElement("option");
+                option.value = "";
+                option.text = "Semana";
+                semanaSelect.appendChild(option);
+            }
+        }
+
+        document.getElementById("mes").addEventListener("change", generarSemanas);
+        generarSemanas();
+
+        // Agregar el valor seleccionado de mes y semana en el formulario
+        document.addEventListener("DOMContentLoaded", function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const mes = urlParams.get('mes');
+            const semana = urlParams.get('semana');
+            const ano = urlParams.get('ano');
+
+            if (mes) {
+                document.getElementById('mes').value = mes;
+                generarSemanas();
+            }
+            if (semana) {
+                document.getElementById('semana').value = semana;
+            }
+            if (ano) {
+                document.getElementById('ano').value = ano;
+            }
+        });
     </script>
 
     <!-- JavaScript Libraries -->
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Template Javascript -->
-    <script src="{% static 'js/main.js'%}"></script>
 
 </body>
 </html>

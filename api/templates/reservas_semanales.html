@@ -1,0 +1,199 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+
+
+</head>
+<body>
+    <div id="spinner" class="show position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+
+    <div class="LoginContainer">
+        <div class="Logos">
+            <img src="{% static 'img/IconCdmx.png' %}" alt="Logo 1" class="logo-1">
+            <img src="{% static 'img/IconMetro.webp' %}" alt="Logo 2" class="logo-2">
+        </div>
+
+        <div class="reservas-container">
+            {% for semana in datos %}
+                <div class="semana">
+                    <div class="titulo-semana">{{ semana.rango }}</div>
+                    <table class="tabla-reservas">
+                        <thead>
+                            <tr>
+                                <th>Evento</th>
+                                <th>Fecha</th>
+                                <th>Hora</th>
+                                <th>Sala</th>
+                                <th>Comentarios</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in semana.reservas %}
+                                <tr>
+                                    <td>{{ r.evento }}</td>
+                                    <td>{{ r.fecha|date:"d/m/Y" }}</td>
+                                    <td>{{ r.hora_inicio }} - {{ r.hora_final }}</td>
+                                    <td>{{ r.sala.nombre }}</td>
+                                    <td>{% if r.comentarios %}{{ r.comentarios }}{% else %}-{% endif %}</td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="5">No hay reservaciones.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <div class="reservas-tarjetas">
+                        {% for r in semana.reservas %}
+                        <div class="reserva-card {% if forloop.last and forloop.parentloop.last %}ultima-carta{% endif %}">
+                            <div class="titulo"><strong>{{ r.evento }}</strong></div>
+                            <div class="detalle"><strong>Fecha:</strong> {{ r.fecha|date:"d/m/Y" }}</div>
+                            <div class="detalle"><strong>Hora:</strong> {{ r.hora_inicio }} - {{ r.hora_final }}</div>
+                            <div class="detalle"><strong>Sala:</strong> {{ r.sala.nombre }}</div>
+                            <div class="detalle"><strong>Comentarios:</strong> {% if r.comentarios %}{{ r.comentarios }}{% else %}-{% endif %}</div>
+                        </div>
+                        {% empty %}
+                            <div class="reserva-card">
+                                <div class="detalle">No hay reservaciones.</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+        }
+
+        .LoginContainer {
+            overflow-y: auto;
+            max-width: 1200px;
+            min-height: 600px; /* cambia height a min-height */
+            margin: 40px auto;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            background-image: url("{% static 'img/footer.jpg' %}");
+            filter: sepia(0.5) saturate(1.5) hue-rotate(340deg);
+            background-size: 399px 60px;
+            background-repeat: repeat-x;
+            background-position: bottom;
+        }
+
+        .Logos {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .logo-1 {
+            width: 150px;
+            height: auto;
+            margin-right: 20px;
+        }
+
+        .logo-2 {
+            width: 80px;
+            height: auto;
+        }
+
+        .reservas-container {
+            margin-top: 20px;
+        }
+
+        .semana {
+            margin-bottom: 20px;
+        }
+
+        .titulo-semana {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .tabla-reservas {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .tabla-reservas th, .tabla-reservas td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .tabla-reservas th {
+            background-color: #f0f0f0;
+        }
+
+        .reservas-tarjetas {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .tabla-reservas {
+                display: none;
+            }
+            .reservas-tarjetas {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .reserva-card {
+                background-color: #fff;
+                border: 1px solid #ddd;
+                border-radius: 10px;
+                padding: 20px;
+                margin: 20px;
+                width: calc(50% - 20px);
+                box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .reserva-card {
+                width: 100%;
+                margin: 10px 0;
+            }
+            .LoginContainer {
+                margin: 20px auto;
+                padding: 10px;
+            }
+            .Logos {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+
+    <script>
+        // Ocultar el spinner cuando la página haya terminado de cargar
+        window.addEventListener('load', function () {
+            document.getElementById('spinner').style.setProperty('display', 'none', 'important');
+        });
+    </script>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Template Javascript -->
+
+
+</body>
+</html>
