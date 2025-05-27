@@ -245,9 +245,7 @@
                             <label for="notificarReserva" class="fw-bold" style="color: black;">¿Notificar esta reservación?</label>
                         </div>
                         <div class="mb-2" id="seleccionDestinatarios" style="display: none;">
-                            <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#modalDestinatarios">
-                                Seleccionar Destinatarios
-                            </button>
+                            <a href="#" class="text-dark" data-bs-toggle="modal" data-bs-target="#modalDestinatarios" style="text-decoration: underline;">Seleccionar Destinatarios</a>
                         </div>
                         <input type="hidden" id="destinatariosSeleccionados" name="destinatariosSeleccionados">
                         <div id="horarios-ocupados" style="color: red; text-align: center;font-size: 14px;"></div>
@@ -266,9 +264,10 @@
         <div class="modal-dialog">
             <div class="modal-content" style="border-radius: 15px;">
                 <div class="modal-header"
-                    style="background-color: rgba(61, 50, 50, 0.77); border-top-left-radius: 13px; border-top-right-radius: 13px;">
-                    <h5 class="modal-title" id="modalDestinatariosLabel">Seleccionar Destinatarios</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    style="background-color: rgba(61, 50, 50, 0.77); border-top-left-radius: 13px; border-top-right-radius: 13px; padding: 3px;">
+                    <h5 class="modal-title" id="modalDestinatariosLabel" style="font-family: 'Times New Roman', Times, serif;">Seleccionar Destinatarios</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                    style="background-color: transparent; border: none; padding: 0; font-size: 15px; margin-right: 20px;"></button>
                 </div>
                 <div class="modal-body">
                     <!-- Pestañas con abreviaturas -->

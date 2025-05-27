@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.db.models import Count
 from django.contrib.auth.models import User
-from api.models import Reservacion, SalaJuntas,Invitado
+from api.models import Reservacion, SalaJuntas,Invitado,Area
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -18,6 +18,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
 from api.models import Reservacion, Invitado, ReservacionInvitado
+from django.core.mail import send_mail
 
 
 def graficos(request):
@@ -91,13 +92,14 @@ def graficos(request):
     return render(request, 'graficos.html', context)
 
 
-# bueno
+#Bueno bueno
 def editar_reservacion(request, pk):
     if request.method == 'POST':
         try:
             reservacion = get_object_or_404(Reservacion, id_reservacion=pk)
 
             # Obtener datos enviados y conservar los originales si están vacíos
+            nombre_anterior = reservacion.evento
             reservacion.evento = request.POST.get('evento_editar', reservacion.evento)
             reservacion.comentarios = request.POST.get('comentarios_editar', reservacion.comentarios)
             reservacion.sala_id = request.POST.get('salaJuntas_editar', reservacion.sala_id)
@@ -116,6 +118,44 @@ def editar_reservacion(request, pk):
             ReservacionInvitado.objects.filter(reservacion=reservacion).delete()
             for invitado_id in invitados_seleccionados:
                 ReservacionInvitado.objects.create(reservacion=reservacion, invitado_id=invitado_id)
+
+            # Enviar correo electrónico a los invitados
+            invitados = Invitado.objects.filter(id_invitado__in=invitados_seleccionados)
+            for invitado in invitados:
+                subject = f"Actualización de Reservación: {reservacion.evento}"
+                if nombre_anterior != reservacion.evento:
+                    message = f"""
+                        <h2>📅 Actualización de Reservación</h2>
+                        <p>Estimado/a {invitado.nombre_completo},</p>
+                        <p>La reservación <strong>{nombre_anterior}</strong> ha sido actualizada a <strong>{reservacion.evento}</strong> por {reservacion.usuario.username}.</p>
+                        <h3>Detalles de la Reservación:</h3>
+                        <ul>
+                            <li>📆 Fecha: {reservacion.fecha}</li>
+                            <li>🕒 Hora de inicio: {reservacion.hora_inicio}</li>
+                            <li>🕒 Hora de finalización: {reservacion.hora_final}</li>
+                            <li>🏢 Sala: {reservacion.sala.nombre}</li>
+                        </ul>
+                        <p>Por favor, revise los detalles y confirme su asistencia.</p>
+                        <p>Atentamente,</p>
+                        <p>{reservacion.usuario.username}</p>
+                    """
+                else:
+                    message = f"""
+                        <h2>📅 Actualización de Reservación</h2>
+                        <p>Estimado/a {invitado.nombre_completo},</p>
+                        <p>La reservación para <strong>{reservacion.evento}</strong> ha sido actualizada por {reservacion.usuario.username}.</p>
+                        <h3>Detalles de la Reservación:</h3>
+                        <ul>
+                            <li>📆 Fecha: {reservacion.fecha}</li>
+                            <li>🕒 Hora de inicio: {reservacion.hora_inicio}</li>
+                            <li>🕒 Hora de finalización: {reservacion.hora_final}</li>
+                            <li>🏢 Sala: {reservacion.sala.nombre}</li>
+                        </ul>
+                        <p>Por favor, revise los detalles y confirme su asistencia.</p>
+                        <p>Atentamente,</p>
+                        <p>{reservacion.usuario.username}</p>
+                    """
+                send_mail(subject, "", 'noreply@miapp.com', [invitado.correo], html_message=message)
 
             return JsonResponse({'success': True})
 
@@ -136,10 +176,10 @@ def get_destinatarios_por_area(request):
 
 def get_invitados(request):
     reservacion_id = request.GET.get('reservacion_id')
-    if not reservacion_id or not reservacion_id.isdigit():  # Validación extra
+    if not reservacion_id or not reservacion_id.isdigit():  
         return JsonResponse({'error': 'ID de reservación no válido'}, status=400)
 
-    reservacion_id = int(reservacion_id)  # Convertir a entero correctamente
+    reservacion_id = int(reservacion_id)  
     reservacion = get_object_or_404(Reservacion, id_reservacion=reservacion_id)
 
     invitados_actuales_ids = list(map(int, reservacion.reservacioninvitado_set.values_list('invitado_id', flat=True)))
@@ -147,8 +187,21 @@ def get_invitados(request):
     invitados_actuales = list(Invitado.objects.filter(id_invitado__in=invitados_actuales_ids).values('id_invitado', 'nombre_completo'))
     invitados_disponibles = list(Invitado.objects.exclude(id_invitado__in=invitados_actuales_ids).values('id_invitado', 'nombre_completo'))
 
-    return JsonResponse({'invitados_actuales': invitados_actuales, 'invitados_disponibles': invitados_disponibles})
+    areas = Area.objects.prefetch_related('invitados').all()
+    areas_data = []
+    for area in areas:
+        area_data = {
+            'id_area': area.id_area,
+            'nombre': area.nombre,
+            'invitados': list(area.invitados.values('id_invitado', 'nombre_completo'))
+        }
+        areas_data.append(area_data)
 
+    return JsonResponse({
+        'invitados_actuales': invitados_actuales, 
+        'invitados_disponibles': invitados_disponibles,
+        'areas': areas_data
+    })
 
 
 @csrf_exempt

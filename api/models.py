@@ -65,7 +65,7 @@ class SalaJuntas(models.Model):
         db_table = 'salas_juntas'
 
     def __str__(self):
-        return f"{self.nombre} - Capacidad: {self.capacidad}"
+        return f"{self.nombre}"
 
 class Reservacion(models.Model):
     id_reservacion = models.AutoField(primary_key=True)

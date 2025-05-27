@@ -119,21 +119,29 @@ def Reservation(request):
             # Inserción masiva en la base de datos
             ReservacionInvitado.objects.bulk_create(invitados_a_guardar)
 
-
         # Enviar correos si la opción de notificación está activada
-            if enviar_correo and destinatarios_ids:
-                destinatarios_correo = [invitado.correo for invitado in Invitado.objects.filter(id_invitado__in=destinatarios_ids)]
-                if destinatarios_correo:
-                    subject = f"Confirmación de Reservación: {evento}"
-                    message = (
-                        f"La reservación para '{evento}' ha sido realizada.\n"
-                        f"📍 *Sala:* {sala}\n"  # Agregar la sala de reservación
-                        f"📅 *Fecha:* {fecha_reservacion}\n"
-                        f"⏰ *Horario:* {hora_inicio} - {hora_final}"
-                    )
-                    send_mail(subject, message, 'noreply@miapp.com', destinatarios_correo)
+        if enviar_correo and destinatarios_ids:
+            destinatarios_correo = [invitado.correo for invitado in Invitado.objects.filter(id_invitado__in=destinatarios_ids)]
+            if destinatarios_correo:
+                subject = f"Confirmación de Reservación: {evento}"
+                for invitado in Invitado.objects.filter(id_invitado__in=destinatarios_ids):
+                    message = f"""
+                        <h2>📅 Confirmación de Reservación</h2>
+                        <p>Estimado/a {invitado.nombre_completo},</p>
+                        <p>La reservación para <strong>{evento}</strong> ha sido realizada por {request.user.username}.</p>
+                        <h3>Detalles de la Reservación:</h3>
+                        <ul>
+                            <li>📆 Fecha: {fecha_reservacion}</li>
+                            <li>🕒 Hora de inicio: {hora_inicio}</li>
+                            <li>🕒 Hora de finalización: {hora_final}</li>
+                            <li>🏢 Sala: {sala}</li>
+                        </ul>
+                        <p>Atentamente,</p>
+                        <p>{request.user.username}</p>
+                    """
+                    send_mail(subject, "", 'noreply@miapp.com', [invitado.correo], html_message=message)
 
-            messages.success(request, f"Reservación realizada con éxito para '{evento}'.")
+        messages.success(request, f"Reservación realizada con éxito para '{evento}'.")
 
 
         return redirect('reservation')

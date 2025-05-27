@@ -85,10 +85,9 @@
                             </div>
                         </div>
                         <!-- Botón para abrir el modal de gestión de invitados -->
-                        <button type="button" class="btn btn-warning abrirModalInvitados" data-bs-toggle="modal"
-                            data-bs-target="#modalGestionarInvitados" data-reservacion-id="{{ reservacion.id_reservacion }}">
-                            Gestionar Invitados
-                        </button>
+                        <a href="#" class="text-dark abrirModalInvitados" data-bs-toggle="modal"
+                            data-bs-target="#modalGestionarInvitados" data-reservacion-id="{{ reservacion.id_reservacion }}"
+                            style="text-decoration: underline;">Gestionar Invitados</a>
 
                         <div id="horarios-ocupados-editar-{{ reservacion.id_reservacion }}"
                             style="color: red; text-align: center; font-size: 14px;"></div>
@@ -103,17 +102,46 @@
     </div>
 {% endfor %}
 
-    <!-- Modal para gestionar invitados -->
-    <div class="modal fade" id="modalGestionarInvitados" tabindex="-1" aria-labelledby="modalGestionarInvitadosLabel"
-        aria-hidden="true" data-reservacion-id="">
+    <div class="modal fade" id="modalGestionarInvitados" tabindex="-1" aria-labelledby="modalGestionarInvitadosLabel" aria-hidden="true">
         <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalGestionarInvitadosLabel">Gestionar Invitados</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            <div class="modal-content" style="border-radius: 15px;">
+                <div class="modal-header" style="background-color: rgba(61, 50, 50, 0.77); border-top-left-radius: 13px; border-top-right-radius: 13px; padding: 3px 16px;">
+                    <h5 class="modal-title" id="modalGestionarInvitadosLabel" style="font-family: 'Times New Roman', Times, serif;">Gestionar Invitados</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                    style="background-color: transparent; border: none; padding: 0; font-size: 15px; margin-right: 10px;"></button>
                 </div>
                 <div class="modal-body">
-                    <div id="listaInvitados"></div>
+                    <!-- Pestañas con abreviaturas -->
+                    <ul class="nav nav-tabs" style="margin-top: -15px; border-bottom: 2px solid #ff6200;">
+                        {% for area in areas %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if forloop.first %}active{% endif %}" id="gestionar-invitados-tab-{{ area.id_area }}"
+                                data-bs-toggle="tab" href="#gestionar-invitados-area-{{ area.id_area }}">
+                                {{ area.id_area }} <!-- Usamos la abreviatura -->
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+
+                    <!-- Contenido de cada pestaña -->
+                    <div class="tab-content mt-3">
+                        {% for area in areas %}
+                        <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" id="gestionar-invitados-area-{{ area.id_area }}">
+                            <h6 class="mt-2 text-center" style="color: #333; font-weight: bold;">{{ area.nombre }}</h6>
+                            <div class="gestionar-invitados-container p-2 border rounded" style="background-color: #f9f9f9;">
+                                {% for invitado in area.invitados.all %}
+                                <div class="form-check">
+                                    <input class="form-check-input gestionar-invitados-checkbox" type="checkbox"
+                                        value="{{ invitado.id_invitado }}" id="gestionar-invitados-invitado-{{ invitado.id_invitado }}">
+                                    <label class="form-check-label" for="gestionar-invitados-invitado-{{ invitado.id_invitado }}">
+                                        {{ invitado.nombre_completo }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
@@ -143,35 +171,37 @@
                     .then(response => response.json())
                     .then(data => {
                         invitadosSeleccionados = data.invitados_actuales.map(inv => inv.id_invitado);
-                        mostrarInvitados(data.invitados_actuales, data.invitados_disponibles);
+                        mostrarInvitados(data.areas);
                     })
                     .catch(error => console.error("Error al obtener invitados:", error));
             }
 
-            function mostrarInvitados(actuales, disponibles) {
-                let contenedor = document.getElementById("listaInvitados");
-                contenedor.innerHTML = "";
+            function mostrarInvitados(areas) {
+                areas.forEach(area => {
+                    let contenedor = document.querySelector(`#gestionar-invitados-area-${area.id_area} .gestionar-invitados-container`);
+                    contenedor.innerHTML = "";
 
-                [...actuales, ...disponibles].forEach(invitado => {
-                    let checked = invitadosSeleccionados.includes(invitado.id_invitado) ? "checked" : "";
-                    contenedor.innerHTML += `
-                        <div class="form-check">
-                            <input class="form-check-input invitado-checkbox" type="checkbox" value="${invitado.id_invitado}" ${checked}>
-                            <label class="form-check-label">${invitado.nombre_completo}</label>
-                        </div>
-                    `;
-                });
+                    area.invitados.forEach(invitado => {
+                        let checked = invitadosSeleccionados.includes(invitado.id_invitado) ? "checked" : "";
+                        contenedor.innerHTML += `
+                            <div class="form-check">
+                                <input class="form-check-input gestionar-invitados-checkbox" type="checkbox" value="${invitado.id_invitado}" ${checked}>
+                                <label class="form-check-label">${invitado.nombre_completo}</label>
+                            </div>
+                        `;
+                    });
 
-                document.querySelectorAll(".invitado-checkbox").forEach(input => {
-                    input.addEventListener("change", function() {
-                        let invitadoId = parseInt(this.value, 10);
-                        if (this.checked) {
-                            if (!invitadosSeleccionados.includes(invitadoId)) {
-                                invitadosSeleccionados.push(invitadoId);
+                    contenedor.querySelectorAll(".gestionar-invitados-checkbox").forEach(input => {
+                        input.addEventListener("change", function() {
+                            let invitadoId = parseInt(this.value, 10);
+                            if (this.checked) {
+                                if (!invitadosSeleccionados.includes(invitadoId)) {
+                                    invitadosSeleccionados.push(invitadoId);
+                                }
+                            } else {
+                                invitadosSeleccionados = invitadosSeleccionados.filter(id => id !== invitadoId);
                             }
-                        } else {
-                            invitadosSeleccionados = invitadosSeleccionados.filter(id => id !== invitadoId);
-                        }
+                        });
                     });
                 });
             }
@@ -270,22 +300,17 @@
                     }
                 });
                 $('#boton-editar-' + id_reservacion).on('click', function () {
-                    if (invitadosSeleccionados.length === 0) {
-                        // Obtener los invitados actuales de la reservación
-                        $.ajax({
-                            type: 'GET',
-                            url: '/get_invitados/',
-                            data: {
-                                'reservacion_id': id_reservacion
-                            },
-                            success: function (data) {
-                                invitadosSeleccionados = data.invitados_actuales.map(inv => inv.id_invitado);
-                                enviarSolicitudEditarReservacion(id_reservacion);
-                            }
-                        });
-                    } else {
-                        enviarSolicitudEditarReservacion(id_reservacion);
-                    }
+                    $.ajax({
+                        type: 'GET',
+                        url: '/get_invitados/',
+                        data: {
+                            'reservacion_id': id_reservacion
+                        },
+                        success: function (data) {
+                            invitadosSeleccionados = data.invitados_actuales.map(inv => inv.id_invitado);
+                            enviarSolicitudEditarReservacion(id_reservacion);
+                        }
+                    });
                 });
 
                 function enviarSolicitudEditarReservacion(id_reservacion) {
@@ -315,7 +340,6 @@
                         }
                     });
                 }
-
                 // Función para obtener horarios ocupados
                 function getHorariosOcupados(id_reservacion) {
                     var sala_id = $('#salaJuntas_editar_' + id_reservacion).val();
