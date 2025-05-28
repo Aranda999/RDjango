@@ -221,6 +221,16 @@
                     $('#formEditarReservacion' + id_reservacion)[0].reset();
                     $('#error-message-editar-' + id_reservacion).html('');
                     $('#horarios-ocupados-editar-' + id_reservacion).html('');
+                    $.ajax({
+                        type: 'GET',
+                        url: '/get_invitados/',
+                        data: {
+                            'reservacion_id': id_reservacion
+                        },
+                        success: function (data) {
+                            invitadosSeleccionados = data.invitados_actuales.map(inv => inv.id_invitado);
+                        }
+                    });
                 });
 
                 // Agregar evento de cierre del modal
@@ -299,18 +309,18 @@
                         }
                     }
                 });
+
+                // Resto del código para manejar el botón de edición
                 $('#boton-editar-' + id_reservacion).on('click', function () {
-                    $.ajax({
-                        type: 'GET',
-                        url: '/get_invitados/',
-                        data: {
-                            'reservacion_id': id_reservacion
-                        },
-                        success: function (data) {
-                            invitadosSeleccionados = data.invitados_actuales.map(inv => inv.id_invitado);
-                            enviarSolicitudEditarReservacion(id_reservacion);
-                        }
-                    });
+                    // Si se han seleccionado invitados en el modal de gestión de invitados,
+                    // actualizar la variable invitadosSeleccionados
+                    if ($('.gestionar-invitados-checkbox:checked').length > 0) {
+                        invitadosSeleccionados = [];
+                        $('.gestionar-invitados-checkbox:checked').each(function() {
+                            invitadosSeleccionados.push(parseInt($(this).val()));
+                        });
+                    }
+                    enviarSolicitudEditarReservacion(id_reservacion);
                 });
 
                 function enviarSolicitudEditarReservacion(id_reservacion) {
@@ -331,15 +341,19 @@
                             if (data.success) {
                                 // Cerrar el modal
                                 $('#editarReservacion' + id_reservacion).modal('hide');
-                                // Actualizar la página
+                                // Recargar la página
                                 location.reload();
                             } else {
                                 // Código para manejar la respuesta no exitosa
                                 console.log('Error al editar la reservación');
                             }
+                        },
+                        error: function (xhr, status, error) {
+                            console.log('Error al editar la reservación: ' + error);
                         }
                     });
                 }
+
                 // Función para obtener horarios ocupados
                 function getHorariosOcupados(id_reservacion) {
                     var sala_id = $('#salaJuntas_editar_' + id_reservacion).val();
@@ -397,202 +411,6 @@
             }
         });
     </script>
-
-
-<!-- <div class="modal fade" id="modalEditarDestinatarios{{ reservacion.id_reservacion }}" tabindex="-1"
-    aria-labelledby="modalEditarDestinatariosLabel{{ reservacion.id_reservacion }}" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content" style="border-radius: 15px;">
-            <div class="modal-header"
-                style="background-color: rgba(61, 50, 50, 0.77); border-top-left-radius: 13px; border-top-right-radius: 13px;">
-                <h5 class="modal-title" id="modalEditarDestinatariosLabel{{ reservacion.id_reservacion }}">
-                    Seleccionar Destinatarios para actualización
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Contenedor de pestañas por áreas
-                <ul class="nav nav-tabs">
-                    {% for area in areas %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if forloop.first %}active{% endif %}"
-                            id="tabEditar-{{ reservacion.id_reservacion }}-{{ area.id_area }}"
-                            data-bs-toggle="tab"
-                            href="#areaEditar-{{ reservacion.id_reservacion }}-{{ area.id_area }}">
-                            {{ area.id_area }}
-                        </a>
-                    </li>
-                    {% endfor %}
-                </ul>
-
-                <div class="tab-content mt-3">
-                    {% for area in areas %}
-                    <div class="tab-pane fade {% if forloop.first %}show active{% endif %}"
-                        id="areaEditar-{{ reservacion.id_reservacion }}-{{ area.id_area }}">
-                        <h6 class="text-center">Destinatarios en {{ area.nombre }}</h6>
-                        <div class="p-2 border rounded">
-                            {% for invitado in area.invitados.all %}
-                            <div class="form-check">
-                                <input class="form-check-input destinatario-editar-checkbox"
-                                    type="checkbox"
-                                    value="{{ invitado.id_invitado }}"
-                                    id="destinatarioEditar-{{ reservacion.id_reservacion }}-{{ invitado.id_invitado }}"
-                                    {% if invitado in reservacion.invitados.all %}checked{% endif %}>
-                                <label class="form-check-label"
-                                    for="destinatarioEditar-{{ reservacion.id_reservacion }}-{{ invitado.id_invitado }}">
-                                    {{ invitado.nombre_completo }}
-                                </label>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
-</div> -->
-
-
-
-    <!-- <script>
-        $(document).ready(function () {
-            var horariosOcupadosEditar = [];
-
-            function mostrarErrorEditar(reservacion_id, mensaje) {
-                $('#error-message-' + reservacion_id).html(mensaje);
-                $('#error-message-' + reservacion_id).css({
-                    'background-color': '#87CEEB',
-                    'border': '1px solid #ebccd1',
-                    'color': '#000000',
-                    'padding': '2px',
-                    'border-radius': '5px'
-                });
-                $('#error-message-' + reservacion_id).show();
-            }
-
-            function ocultarErrorEditar(reservacion_id) {
-                $('#error-message-' + reservacion_id).html('');
-                $('#error-message-' + reservacion_id).hide();
-            }
-
-            function calcularDiferenciaDias(fecha1, fecha2) {
-                return (fecha1 - fecha2) / (1000 * 3600 * 24);
-            }
-
-            $(document).on('change', 'input[name="fechaReservacion"]', function () {
-                var reservacion_id = $(this).closest('.modal').attr('id').replace('editarReservacion', '');
-                var fecha = $(this).val();
-                var diaSemana = new Date(fecha).getDay();
-
-                if (diaSemana === 5 || diaSemana === 6) {
-                    mostrarErrorEditar(reservacion_id, 'Las reservaciones son de lunes a viernes.');
-                    $(this).val('');
-                } else {
-                    var fechaSeleccionada = new Date(fecha);
-                    var fechaActual = new Date();
-                    var diferenciaDias = calcularDiferenciaDias(fechaSeleccionada, fechaActual);
-
-                    if (diferenciaDias <= 0) {
-                        mostrarErrorEditar(reservacion_id, 'La fecha seleccionada no está permitida.');
-                        $(this).val('');
-                    } else if (diferenciaDias > 7) {
-                        mostrarErrorEditar(reservacion_id, 'Máximo 8 días de anticipación.');
-                        $(this).val('');
-                    } else {
-                        ocultarErrorEditar(reservacion_id);
-                        getHorariosOcupadosEditar(reservacion_id);
-                    }
-                }
-            });
-
-            $(document).on('change', 'select[name="salaJuntas"]', function () {
-                var reservacion_id = $(this).closest('.modal').attr('id').replace('editarReservacion', '');
-                ocultarErrorEditar(reservacion_id);
-                getHorariosOcupadosEditar(reservacion_id);
-            });
-
-            $(document).on('input', 'input[name="horaInicio"], input[name="horaFinal"]', function () {
-                var reservacion_id = $(this).closest('.modal').attr('id').replace('editarReservacion', '');
-                var form = $('#formEditarReservacion' + reservacion_id);
-                var horaInicio = form.find('input[name="horaInicio"]').val();
-                var horaFinal = form.find('input[name="horaFinal"]').val();
-                var horaMin = '08:00';
-                var horaMax = '20:00';
-
-                if (horaInicio && horaFinal) {
-                    if (horaInicio < horaMin || horaInicio > horaMax || horaFinal < horaMin || horaFinal > horaMax || horaFinal <= horaInicio) {
-                        if (horaInicio < horaMin || horaInicio > horaMax) {
-                            mostrarErrorEditar(reservacion_id, 'Las reservaciones comienzan a las 8:00 AM.');
-                        } else if (horaFinal < horaMin || horaFinal > horaMax) {
-                            mostrarErrorEditar(reservacion_id, 'Las reservaciones deben finalizar a las 8:00 PM.');
-                        } else {
-                            mostrarErrorEditar(reservacion_id, 'La hora de finalización debe ser mayor a la hora de inicio.');
-                        }
-                        form.find('input[name="horaInicio"]').val('');
-                        form.find('input[name="horaFinal"]').val('');
-                    } else {
-                        var estaOcupado = false;
-                        $.each(horariosOcupadosEditar, function (index, value) {
-                            if ((horaInicio >= value.hora_inicio && horaInicio < value.hora_final) ||
-                                (horaFinal > value.hora_inicio && horaFinal <= value.hora_final) ||
-                                (horaInicio <= value.hora_inicio && horaFinal >= value.hora_final)) {
-                                estaOcupado = true;
-                                return false;
-                            }
-                        });
-                        if (estaOcupado) {
-                            mostrarErrorEditar(reservacion_id, 'El horario seleccionado no está disponible.');
-                            form.find('input[name="horaInicio"]').val('');
-                            form.find('input[name="horaFinal"]').val('');
-                        } else {
-                            ocultarErrorEditar(reservacion_id);
-                        }
-                    }
-                }
-            });
-
-            function getHorariosOcupadosEditar(reservacion_id) {
-                var form = $('#formEditarReservacion' + reservacion_id);
-                var sala_id = form.find('select[name="salaJuntas"]').val();
-                var fecha = form.find('input[name="fechaReservacion"]').val();
-
-                if (sala_id && fecha) {
-                    $.ajax({
-                        type: 'GET',
-                        url: '{% url "get_ocupados" %}',
-                        data: {
-                            'sala_id': sala_id,
-                            'fecha': fecha,
-                            'reservacion_id': reservacion_id
-                        },
-                        success: function (data) {
-                            horariosOcupadosEditar = data;
-                            mostrarHorariosOcupadosEditar(reservacion_id);
-                        }
-                    });
-                }
-            }
-
-            function mostrarHorariosOcupadosEditar(reservacion_id) {
-                var horariosHtml = '';
-                $.each(horariosOcupadosEditar, function (index, value) {
-                    horariosHtml += '<p>Ocupado: ' + value.hora_inicio + ' - ' + value.hora_final + '</p>';
-                });
-                $('#horarios-ocupados-editar' + reservacion_id).html(horariosHtml);
-            }
-
-
-            $('.modal').on('hidden.bs.modal', function () {
-                var reservacion_id = $(this).attr('id').replace('editarReservacion', '');
-                var form = $('#formEditarReservacion' + reservacion_id);
-                form.find('input, textarea').val('');
-                form.find('select').prop('selectedIndex', 0);
-                $('#horarios-ocupados-editar' + reservacion_id).html('');
-                ocultarErrorEditar(reservacion_id);
-            });
-        });
-    </script> -->
 </body>
 
 </html>

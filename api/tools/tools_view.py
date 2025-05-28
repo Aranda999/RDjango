@@ -118,7 +118,7 @@ def graficos(request):
 
     return render(request, 'graficos.html', context)
 
-#Bueno bueno
+#Buenoooo
 def editar_reservacion(request, pk):
     if request.method == 'POST':
         try:
@@ -138,50 +138,56 @@ def editar_reservacion(request, pk):
             # Procesar invitados seleccionados
             invitados_seleccionados = request.POST.getlist('invitados[]')
             if not invitados_seleccionados:
-                invitados_seleccionados = request.POST.get('invitados').strip('[]').split(',')
-                invitados_seleccionados = [int(i) for i in invitados_seleccionados if i]
-            
+                invitados_seleccionados = request.POST.get('invitados')
+                if invitados_seleccionados:
+                    invitados_seleccionados = invitados_seleccionados.strip('[]').split(',')
+                    invitados_seleccionados = [int(i) for i in invitados_seleccionados if i]
+                else:
+                    invitados_seleccionados = []
+
             ReservacionInvitado.objects.filter(reservacion=reservacion).delete()
-            for invitado_id in invitados_seleccionados:
-                ReservacionInvitado.objects.create(reservacion=reservacion, invitado_id=invitado_id)
+            if invitados_seleccionados:
+                for invitado_id in invitados_seleccionados:
+                    ReservacionInvitado.objects.create(reservacion=reservacion, invitado_id=invitado_id)
 
             # Enviar correo electrónico a los invitados
-            invitados = Invitado.objects.filter(id_invitado__in=invitados_seleccionados)
-            for invitado in invitados:
-                subject = f"Actualización de Reservación: {reservacion.evento}"
-                if nombre_anterior != reservacion.evento:
-                    message = f"""
-                        <h2>📅 Actualización de Reservación</h2>
-                        <p>Estimado/a {invitado.nombre_completo},</p>
-                        <p>La reservación <strong>{nombre_anterior}</strong> ha sido actualizada a <strong>{reservacion.evento}</strong> por {reservacion.usuario.username}.</p>
-                        <h3>Detalles de la Reservación:</h3>
-                        <ul>
-                            <li>📆 Fecha: {reservacion.fecha}</li>
-                            <li>🕒 Hora de inicio: {reservacion.hora_inicio}</li>
-                            <li>🕒 Hora de finalización: {reservacion.hora_final}</li>
-                            <li>🏢 Sala: {reservacion.sala.nombre}</li>
-                        </ul>
-                        <p>Por favor, revise los detalles y confirme su asistencia.</p>
-                        <p>Atentamente,</p>
-                        <p>{reservacion.usuario.username}</p>
-                    """
-                else:
-                    message = f"""
-                        <h2>📅 Actualización de Reservación</h2>
-                        <p>Estimado/a {invitado.nombre_completo},</p>
-                        <p>La reservación para <strong>{reservacion.evento}</strong> ha sido actualizada por {reservacion.usuario.username}.</p>
-                        <h3>Detalles de la Reservación:</h3>
-                        <ul>
-                            <li>📆 Fecha: {reservacion.fecha}</li>
-                            <li>🕒 Hora de inicio: {reservacion.hora_inicio}</li>
-                            <li>🕒 Hora de finalización: {reservacion.hora_final}</li>
-                            <li>🏢 Sala: {reservacion.sala.nombre}</li>
-                        </ul>
-                        <p>Por favor, revise los detalles y confirme su asistencia.</p>
-                        <p>Atentamente,</p>
-                        <p>{reservacion.usuario.username}</p>
-                    """
-                send_mail(subject, "", 'noreply@miapp.com', [invitado.correo], html_message=message)
+            if invitados_seleccionados:
+                invitados = Invitado.objects.filter(id_invitado__in=invitados_seleccionados)
+                for invitado in invitados:
+                    subject = f"Actualización de Reservación: {reservacion.evento}"
+                    if nombre_anterior != reservacion.evento:
+                        message = f"""
+                            <h2>📅 Actualización de Reservación</h2>
+                            <p>Estimado/a {invitado.nombre_completo},</p>
+                            <p>La reservación <strong>{nombre_anterior}</strong> ha sido actualizada a <strong>{reservacion.evento}</strong> por {reservacion.usuario.username}.</p>
+                            <h3>Detalles de la Reservación:</h3>
+                            <ul>
+                                <li>📆 Fecha: {reservacion.fecha}</li>
+                                <li>🕒 Hora de inicio: {reservacion.hora_inicio}</li>
+                                <li>🕒 Hora de finalización: {reservacion.hora_final}</li>
+                                <li>🏢 Sala: {reservacion.sala.nombre}</li>
+                            </ul>
+                            <p>Por favor, revise los detalles y confirme su asistencia.</p>
+                            <p>Atentamente,</p>
+                            <p>{reservacion.usuario.username}</p>
+                        """
+                    else:
+                        message = f"""
+                            <h2>📅 Actualización de Reservación</h2>
+                            <p>Estimado/a {invitado.nombre_completo},</p>
+                            <p>La reservación para <strong>{reservacion.evento}</strong> ha sido actualizada por {reservacion.usuario.username}.</p>
+                            <h3>Detalles de la Reservación:</h3>
+                            <ul>
+                                <li>📆 Fecha: {reservacion.fecha}</li>
+                                <li>🕒 Hora de inicio: {reservacion.hora_inicio}</li>
+                                <li>🕒 Hora de finalización: {reservacion.hora_final}</li>
+                                <li>🏢 Sala: {reservacion.sala.nombre}</li>
+                            </ul>
+                            <p>Por favor, revise los detalles y confirme su asistencia.</p>
+                            <p>Atentamente,</p>
+                            <p>{reservacion.usuario.username}</p>
+                        """
+                    send_mail(subject, "", 'noreply@miapp.com', [invitado.correo], html_message=message)
 
             return JsonResponse({'success': True})
 
