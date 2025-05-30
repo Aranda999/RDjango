@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.db.models import Count
 from django.contrib.auth.models import User
 from api.models import Reservacion, SalaJuntas,Invitado,Area
@@ -300,3 +300,27 @@ def vista_reservas_semanales(request):
     datos.sort(key=lambda x: x['rango'])  # Ordenar cronológicamente
 
     return render(request, 'reservas_semanales.html', {'datos': datos})
+
+
+
+def enviar_notificacion(request):
+    if request.method == 'POST':
+        mensaje = request.POST.get('mensaje')
+        destinatarios = request.POST.get('destinatarios')
+        destinatarios = destinatarios.split(',')
+
+        invitados = Invitado.objects.filter(id_invitado__in=destinatarios)
+
+        for invitado in invitados:
+            send_mail(
+                'Notificación',
+                mensaje,
+                'informatica.cdt.stc@gmail.com',
+                [invitado.correo],
+                fail_silently=False,
+            )
+
+        return redirect('home')  
+
+    areas = Area.objects.all()  
+    return render(request, 'enviar_notificacion.html', {'areas': areas})

@@ -20,10 +20,11 @@ from django.urls import reverse
 from django.urls import path, reverse_lazy
 from django.urls import path
 from api.home.home_view import Home
-from api.home.home_view import HomeUser
+from api.security.security_view import HomeUser
 from api.home.home_view import Reservation
 from api.tools.tools_view import editar_reservacion
 from api.home.home_view import get_ocupados
+from api.home.home_view import Notificaciones
 from api.log.login_view import Login
 from api.log.login_view import Logout
 from api.tools.tools_view import graficos
@@ -31,6 +32,7 @@ from api.tools.tools_view import get_destinatarios_por_area
 from api.tools.tools_view import get_invitados
 from api.tools.tools_view import guardar_invitados
 from api.tools.tools_view import vista_reservas_semanales
+from api.tools.tools_view import enviar_notificacion
 from api.security.security_view import Password
 from api.security.security_view import reset_password
 from django.contrib.auth.decorators import login_required 
@@ -53,6 +55,8 @@ urlpatterns = [
     path('get_invitados/', get_invitados, name='get_invitados'),
     path('guardar_invitados/', guardar_invitados, name='guardar_invitados'),
     path('reservas-publico/', vista_reservas_semanales, name='reservas_semanales'),
+    path('notificacion/', Notificaciones, name='notificacion'),
+    path('enviar_notificacion/', enviar_notificacion, name='enviar_notificacion'),
     
 
 ]

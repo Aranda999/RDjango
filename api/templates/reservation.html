@@ -452,7 +452,7 @@
                 if (horaInicio && horaFinal) {
                     if (horaInicio < horaMin || horaInicio > horaMax || horaFinal < horaMin || horaFinal > horaMax || horaFinal <= horaInicio) {
                         if (horaInicio < horaMin || horaInicio > horaMax) {
-                            mostrarError('Las reservaciones comienzan a las 8:00 y terminan a las 20:00');
+                            mostrarError('Las reservaciones comienzan a las 8:00');
                         } else if (horaFinal < horaMin || horaFinal > horaMax) {
                             mostrarError('Las reservaciones deben finalizar antes de las 20:00');
                         } else {
