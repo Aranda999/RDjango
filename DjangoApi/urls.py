@@ -35,6 +35,7 @@ from api.tools.tools_view import vista_reservas_semanales
 from api.tools.tools_view import enviar_notificacion
 from api.security.security_view import Password
 from api.security.security_view import reset_password
+from api.video.video_view import camera_view
 from django.contrib.auth.decorators import login_required 
 
 admin.site.login_url = reverse_lazy('login')
@@ -57,7 +58,7 @@ urlpatterns = [
     path('reservas-publico/', vista_reservas_semanales, name='reservas_semanales'),
     path('notificacion/', Notificaciones, name='notificacion'),
     path('enviar_notificacion/', enviar_notificacion, name='enviar_notificacion'),
-    
+    path('camera/', camera_view, name='camera_view'),
 
 ]
 
