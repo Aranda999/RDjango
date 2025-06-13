@@ -24,18 +24,13 @@
             <span class="sr-only">Loading...</span>
         </div>
     </div>
-    <img src="{% static 'img/FondoWindow1.jpg' %}" class="imagen-principal" 
-    style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; object-position: center; margin: 0; padding: 0; z-index: -1;">
-    
+
     <div class="LoginContainer">
         <div class="Logos">
             <img src="{% static 'img/IconCdmx.png' %}" alt="Logo 1" class="logo-1">
             <img src="{% static 'img/IconMetro.webp' %}" alt="Logo 2" class="logo-2">
         </div>
         <h2 class="titulo">BIENVENIDO AL <br> SISTEMA DE RESERVACION</h2>
-        <div class="boton-ventana">
-            <a href="{% url 'reservas_semanales' %}">Presentación</a>
-        </div>
         <div class="ContenedorIconos">
             <!-- Botón para abrir el modal de cambio de contraseña -->
             <div class="CambioContraseña">
@@ -43,7 +38,7 @@
                     <i class="fa-solid fa-lock"></i>
                 </div>
                 <div class="boton">
-                    <a href="" data-bs-toggle="modal" data-bs-target="#cambiarContrasenaModal" id="cambiarContrasenaBtn">CAMBIAR CONTRASEÑA</a>
+                    <a href="" data-bs-toggle="modal" data-bs-target="#cambiarContrasenaModal" id="cambiarContrasenaBtn">CONTRASEÑA</a>
                 </div>
             </div>
             <!-- Botón para abrir el modal de reservación -->
@@ -55,133 +50,153 @@
                     <a href="{% url 'reservation' %}">RESERVACIONES</a>
                 </div>
             </div>
+            <!-- Botón para proyectado -->
+            <div class="Proyectado">
+                <div class="icono3">
+                    <i class="fa-solid fa-desktop"></i>
+                </div>
+                <div class="boton">
+                    <a href="{% url 'reservas_semanales' %}">PROYECTAR</a>
+                </div>
+            </div>
         </div>
-        <a href="{% url 'logout' %}" style="text-decoration: underline; color: black;">
-            <i class="fa-solid fa-right-from-bracket"></i> 
-            Cerrar sesión
-        </a>
-        <p>Usuario: {{ request.user.username }}</p>
+        <div class="user-info">
+            <p style="margin-bottom: 0;">Usuario: {{ request.user.username }}</p>
+            <a href="{% url 'logout' %}" style="text-decoration: underline; color: black; margin-top: 0;">
+                <i class="fa-solid fa-right-from-bracket"></i> 
+                Cerrar sesión
+            </a>
+        </div>
     </div>
 
     <!-- Incluir el modal de cambio de contraseña -->
     {% include 'modal-password.html' %}
 
-
     <style>
-        .imagen-principal {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            object-fit: cover;
-            object-position: center;
-            margin: 0;
-            padding: 0;
-            z-index: -1;
-        }
-
-        .LoginContainer {
-            width: 620px;
-            height: 500px;
-            margin: 40px auto;
-            margin-top: 100px;
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-image: url("{% static 'img/footer.jpg' %}");
-            filter: sepia(0.5) saturate(1.5) hue-rotate(340deg);
-            background-size: 399px 60px;
-            background-repeat: repeat-x;
-            background-position: bottom;
-        }
-
-        .logo-1 {
-            width: 200px;
-            height: auto;
-            margin-right: 150px;
-        }
-
-        .logo-2 {
-            width: 85px;
-            height: auto;
-        }
-
-        .titulo {
-            text-align: center;
-            margin-top: 20px;
-            font-weight: bold;
-            font-family: 'Times New Roman', Times, serif;
-            color: black;
-            font-size: 15px;
-        }
-
-        .ContenedorIconos {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 60px;
-        }
-        
-        .CambioContraseña, .Reservacion {
-            margin: 25px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .icono1 {
-            font-size: 47px;
-            margin-bottom: 10px;
-            color: black;
-        }
-        
-        .icono2 {
-            font-size: 45.8px;
-            margin-bottom: 10px;
-            color: black;
-        }
-        
-        .boton a {
-            text-decoration: underline;
-            color: #000;
-        }
-
-        @media (max-width: 768px) {
-            .titulo, .reservacion {
-                display: block;
-                margin: 20px auto;
+            body {
+                margin: 0;
+                padding: 0;
+                background-image: url("{% static 'img/FondoWindow1.jpg' %}");
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                height: 100vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
             }
 
-
             .LoginContainer {
-                width: 90%;
-                margin: 20px auto;
+                width: 620px;
+                height: 500px;
+                margin: 40px auto;
+                background-color: #fff;
+                border: 1px solid #ddd;
+                border-radius: 10px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                background-image: url("{% static 'img/footer.jpg' %}");
+                filter: sepia(0.5) saturate(1.5) hue-rotate(340deg);
+                background-size: 399px 60px;
+                background-repeat: repeat-x;
+                background-position: bottom;
             }
 
             .logo-1 {
-                width: 120px;
+                width: 200px;
                 height: auto;
+                margin-right: 150px;
             }
 
             .logo-2 {
-                width: 50px;
+                width: 85px;
                 height: auto;
             }
-        }
 
-        /* Media query para dispositivos más pequeños */
-        @media (max-width: 370px) {
-            .imagen-principal {
-                width: 100%;
-                height: 100vh;
+            .titulo {
+                text-align: center;
+                margin-top: 20px;
+                font-weight: bold;
+                font-family: 'Times New Roman', Times, serif;
+                color: black;
+                font-size: 15px;
             }
-        }
+
+            .ContenedorIconos {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 40px;
+            }
+
+            .CambioContraseña, .Reservacion, .Proyectado {
+                margin: 25px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                margin-top: 50px;
+            }
+
+            .icono1 {
+                font-size: 47px;
+                margin-bottom: 10px;
+                color: black;
+            }
+
+            .icono2 {
+                font-size: 45.8px;
+                margin-bottom: 10px;
+                color: black;
+            }
+
+            .icono3 {
+                font-size: 45.8px;
+                margin-bottom: 10px;
+                color: black;
+            }
+
+            .boton a {
+                text-decoration: underline;
+                color: #000;
+            }
+
+            .user-info {
+                margin-top: 10px;
+                text-align: center;
+                margin-bottom: 5px;
+            }
+
+            @media (max-width: 768px) {
+                .LoginContainer {
+                    width: 90%;
+                    height: auto;
+                    margin: 20px auto;
+                    padding-bottom: 70px;
+                }
+
+                .ContenedorIconos {
+                    flex-direction: column;
+                    padding: 20px;
+                }
+
+                .CambioContraseña, .Reservacion, .Proyectado {
+                    margin: 10px;
+                }
+
+                .logo-1 {
+                    width: 120px;
+                    height: auto;
+                    margin-right: 50px;
+                }
+
+                .logo-2 {
+                    width: 50px;
+                    height: auto;
+                }
+            }
     </style>
-    
+
     <script>
         // Ocultar el spinner cuando la página haya terminado de cargar
         window.addEventListener('load', function() {

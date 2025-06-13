@@ -2,15 +2,17 @@ import django_filters
 from api.models import Reservacion,SalaJuntas
 from datetime import timedelta
 from datetime import datetime
+from django.contrib.auth.models import User
 
 class ReservacionFilter(django_filters.FilterSet):
     fecha = django_filters.DateFilter(field_name='fecha', lookup_expr='exact')
     sala = django_filters.ModelChoiceFilter(queryset=SalaJuntas.objects.all())
     evento = django_filters.CharFilter(field_name='evento', lookup_expr='icontains')
+    usuario = django_filters.ModelChoiceFilter(queryset=User.objects.all(), field_name='usuario')
 
     class Meta:
         model = Reservacion
-        fields = ['fecha', 'sala', 'evento']
+        fields = ['fecha', 'sala', 'evento', 'usuario']
 
 
 class GraficoFilter(django_filters.FilterSet):

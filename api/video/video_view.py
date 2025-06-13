@@ -3,7 +3,7 @@ from django.http import StreamingHttpResponse
 from django.shortcuts import render, redirect
 
 def camera_stream():
-    rtsp_url = "rtsp://adminRLlarena:server2410@192.168.1.82:554/stream1"
+    rtsp_url = "rtsp://adminRLlarena:server2410@192.168.1.69:554/stream1"
     cap = cv2.VideoCapture(rtsp_url)
 
     while True:

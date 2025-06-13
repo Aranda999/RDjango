@@ -24,18 +24,18 @@
     <!-- Contenedor de los logos de la empresa -->
     <div class="LoginContainer">
         <div class="Logos">
-            <img src="{% static 'img/IconCdmx.png' %}" alt="Logo 1" class="logo" style="height: 55px; width: 210px; position: relative; top: 10px; margin-left: 20px;">
-            <img src="{% static 'img/IconMetro.webp' %}" alt="Logo 2" class="logo" style="height: 60px; width: 120px; margin-left: 30px; position: relative; top: 10px;">
+            <img src="{% static 'img/IconCdmx.png' %}" alt="Logo 1" class="logo" style="height: 45px; width: 190px; position: relative; top: 10px; margin-left: 20px;">
+            <img src="{% static 'img/IconMetro.webp' %}" alt="Logo 2" class="logo" style="height: 42px; width: 85px; margin-left: 55px; position: relative; top: 10px;">
         </div>
         <p class="title" style="margin-top: 40px;">INGRESA EL CORREO DE TU USUARIO</p>
         <!--Creacion del formulario que contiene el metodo POST-->
         <form method="POST">
             {% csrf_token %}
             <!--Indicadores del formulario-->
-            <div class="d-flex flex-column align-items-start" style="margin-left: 90px; position: relative;">
-                <i class="fa-solid fa-user" style="color: black; position: absolute; top: 28px; left: -30px; font-size: 30px;"></i>
+            <div class="d-flex flex-column align-items-start" style="margin-left: 108px; position: relative;">
+                <i class="fa-solid fa-user" style="color: black; position: absolute; top: 28px; left: -35px; font-size: 30px;"></i>
                 <label for="floatingInput" style="color: black; font-size: 12px; font-weight: bold;position: relative; top: 20px;">CORREO ELECTRÓNICO</label>
-                <input type="email" class="form-control shadow-sm" id="floatingInput" name="email" placeholder="name@example.com" required style="width: 220px; height: 23px; position: relative; top: 20px;">
+                <input type="email" class="form-control shadow-sm" id="floatingInput" name="email" placeholder="name@example.com" required style="width: 205px; height: 23px; position: relative; top: 20px; font-size: 13px;">
             </div>
             <!--Boton que permite enviar el formulario y realizar la funcion-->
             <button type="submit" class="btn btn-lg shadow-sm" style="background-color: #ff6200; 
@@ -45,7 +45,7 @@
             </button>
             <!--URL que permite al usuario regresar al login -->
             <a href="{% url 'login' %}" style="text-decoration: underline; color: black; font-size: 14px; position: 
-            relative; top: 70px;  margin-left: 125px; ">REGRESAR AL MENU</a>
+            relative; top: 70px;  margin-left: 133px; ">REGRESAR AL LOGIN</a>
         </form>
         <!--Manejo de errores se muestran en la venatana-->
         <div style="position: relative; top: 80px; text-align: center;">
@@ -65,7 +65,7 @@
     <style>
         .LoginContainer {
             width: 400px; 
-            height: 429px;
+            height: 405px;
             margin: 40px auto;
             margin-top: 150px;
             background-color: rgb(255, 255, 255);

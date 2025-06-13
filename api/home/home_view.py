@@ -10,14 +10,37 @@ from datetime import timedelta
 from django.utils import timezone
 from django.core.mail import send_mail
 from django.urls import reverse
+from django.contrib.auth import update_session_auth_hash, logout
 
-@login_required (login_url= 'login')
+@login_required(login_url='login')
 def Home(request):
-    if request.user.is_superuser:
-        template_view = "home.html"
-        return render(request, template_name=template_view)
-    else:
-        return redirect("homeuser")
+    template_view = "home.html"
+    
+    if request.method == 'POST':
+        nueva_contrasena = request.POST.get('nuevaContrasena')
+        confirmar_contrasena = request.POST.get('confirmarContrasena')
+
+        # Verificar si las contraseñas coinciden
+        if nueva_contrasena != confirmar_contrasena:
+            messages.error(request, "Las contraseñas no coinciden.")
+            return render(request, template_view)
+
+        # Si las contraseñas coinciden, cambiar la contraseña del usuario
+        user = request.user
+        user.set_password(nueva_contrasena)
+        user.save()
+
+        # Actualizar la sesión para que no se cierre después de cambiar la contraseña
+        update_session_auth_hash(request, user)
+
+        # Cerrar sesión del usuario
+        logout(request)
+
+        # Mensaje de éxito y redirigir al login
+        messages.success(request, "Contraseña cambiada exitosamente. Por favor, vuelve a iniciar sesión.")
+        return redirect('login')
+
+    return render(request, template_name=template_view)
 
 
 @login_required
@@ -38,6 +61,7 @@ def Reservation(request):
     for reservacion in reservaciones:
         hora_inicio = datetime.combine(reservacion.fecha, reservacion.hora_inicio)
         reservacion.editable = hora_inicio - datetime.now() >= timedelta(hours=1)
+        reservacion.eliminable = hora_inicio - datetime.now() > timedelta(hours=1)
 
     if request.method == 'POST':
         # Obtener datos del formulario
@@ -122,7 +146,7 @@ def Reservation(request):
         'reservaciones': reservaciones,
         'areas': areas,  # Se envían las áreas al template
         'myFilter': myFilter,
-        'today': timezone.now().date()
+        'today': timezone.now().date(),
     })
 
 
@@ -148,6 +172,8 @@ def Notificaciones(request):
         destinatarios = destinatarios.split(',')
         # Obtiene los correos electrónicos de los destinatarios
         correos = [Invitado.objects.get(id_invitado=destinatario).correo for destinatario in destinatarios]
+        # Agrega el texto "Atentamente, Gerencia de Ingeniería y Nuevos Proyectos" al mensaje
+        mensaje_completo = f"{mensaje}\n\nAtentamente,\nGerencia de Ingeniería y Nuevos Proyectos"
         # Envía el correo electrónico
-        send_mail('Notificación', mensaje, 'informatica.cdt.stc@gmail.com', correos)
+        send_mail('Notificación', mensaje_completo, 'informatica.cdt.stc@gmail.com', correos)
     return render(request, 'notificaciones.html', {'areas': areas})

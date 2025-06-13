@@ -17,10 +17,12 @@ def Login(request):
             if user.is_superuser:
                 return redirect('home')
             else:
-                return redirect('homeuser')  # Redirige a la vista Logout si no es superusuario
+                return redirect('homeuser')
         else:
             return render(request, template_name, {'error': 'Credenciales inválidas'})
     return render(request, template_name)
+
+
 
 
 def Logout(request):

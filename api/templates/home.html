@@ -33,50 +33,73 @@
             </div>
         </div>
         <div class="ContenedorIconos">
-            <!-- Botón para abrir el modal de cambio de contraseña -->
-            <div class="CambioContraseña">
-                <div class="icono1">
-                    <i class="fa-solid fa-lock"></i>
+            <!-- Botones de arriba -->
+            <div class="BotonesArriba">
+                <!-- Botón para abrir el modal de cambio de contraseña -->
+                <div class="CambioContraseña">
+                    <div class="icono1">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <div class="boton">
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#cambiarContrasenaModal"
+                            id="cambiarContrasenaBtn">Contraseña</a>
+                    </div>
                 </div>
-                <div class="boton">
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#cambiarContrasenaModal"
-                        id="cambiarContrasenaBtn">CONTRASEÑA</a>
+                <!-- Botón para abrir el modal de reservación -->
+                <div class="Reservacion">
+                    <div class="icono2" style="margin-bottom: -1px;">
+                        <i class="fa-solid fa-calendar-alt" style="margin-top: 3px;"></i>
+                    </div>
+                    <div class="boton">
+                        <a href="{% url 'reservation' %}" class="btn btn-reserva" id="btn-reservar">Reservaciones</a>
+                    </div>
+                </div>
+                <!-- Botón para gráficos -->
+                <div class="Graficos">
+                    <div class="icono3">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <div class="boton">
+                        <a href="{% url 'graficos' %}">Gráficos</a>
+                    </div>
+                </div>
+                <!-- Botón para proyectar -->
+                <div class="Proyectado">
+                    <div class="icono3">
+                        <i class="fa-solid fa-desktop"></i>
+                    </div>
+                    <div class="boton">
+                        <a href="{% url 'reservas_semanales' %}">Proyección</a>
+                    </div>
                 </div>
             </div>
-            <!-- Botón para abrir el modal de reservación -->
-            <div class="Reservacion">
-                <div class="icono2">
-                    <i class="fa-solid fa-calendar-week"></i>
+            <!-- Botones de abajo -->
+            <div class="BotonesAbajo">
+                <!-- Botón para cámara -->
+                <div class="Camara">
+                    <div class="icono5">
+                        <i class="fa-solid fa-camera"></i>
+                    </div>
+                    <div class="boton">
+                        <a href="{% url 'camera_view' %}">Cámara</a>
+                    </div>
                 </div>
-                <div class="boton">
-                    <a href="{% url 'reservation' %}" class="btn btn-reserva" id="btn-reservar">RESERVACIONES</a>
+                <div class="Notificaciones" style="margin-right: 8px;">
+                    <div class="icono4" >
+                        <i class="fa-solid fa-bell"></i>
+                    </div>
+                    <div class="boton">
+                        <a href="{% url 'notificacion' %}">Notificaciones</a>
+                    </div>
                 </div>
-            </div>
-            <!-- Botón para gráficos -->
-            <div class="Graficos">
-                <div class="icono3">
-                    <i class="fa-solid fa-chart-line"></i>
-                </div>
-                <div class="boton">
-                    <a href="{% url 'graficos' %}">GRÁFICOS</a>
-                </div>
-            </div>
-            <!-- Botón para notificaciones -->
-            <div class="Notificaciones">
-                <div class="icono4">
-                    <i class="fa-solid fa-bell"></i>
-                </div>
-                <div class="boton">
-                    <a href="{% url 'notificacion' %}">NOTIFICACIONES</a>
-                </div>
-            </div>
-            <!-- Botón para cámara -->
-            <div class="Camara">
-                <div class="icono5">
-                    <i class="fa-solid fa-camera"></i>
-                </div>
-                <div class="boton">
-                    <a href="{% url 'camera_view' %}">CÁMARA</a>
+                <!-- Botón para gestión -->
+                <div class="Gestion">
+                    <div class="icono6">
+                        <i class="fa-solid fa-cog"></i>
+                    </div>
+                    <div class="boton">
+                        <a href="{% url 'administracion' %}">Gestión</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -90,149 +113,7 @@
         </div>
     </div>
 
-
-    <!-- Modal para cambio de contraseña -->
-    <div class="modal fade" id="cambiarContrasenaModal" tabindex="-1" aria-labelledby="cambiarContrasenaModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 5px;">
-                <div class="modal-header"
-                    style="background-color: rgb(65, 70, 71); border-radius: 3px 3px 0 0; padding: 10px;">
-                    <button
-                        style="filter: invert(100%) sepia(100%) saturate(0%) hue-rotate(0deg) brightness(103%) contrast(103%);"
-                        type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" style="padding: 20px;">
-                    <h5 class="modal-title" id="cambiarContrasenaModalLabel" style="color:rgb(0, 0, 0);">Metro
-                        CDMX</h5>
-                    <form>
-                        <div class="mb-3" style="padding: 5px;">
-                            <label for="nuevaContrasena" class="form-label">Nueva contraseña</label>
-                            <input type="password" class="form-control" id="nuevaContrasena"
-                                style="border: 1px solid black;">
-                        </div>
-                        <div class="mb-3" style="padding: 5px;">
-                            <label for="confirmarContrasena" class="form-label">Confirmar contraseña</label>
-                            <input type="password" class="form-control" id="confirmarContrasena"
-                                style="border: 1px solid black;">
-                        </div>
-                        <button type="submit" class="btn"
-                            style="background-color: #ff6200; color: black; width: 50%; margin: 0 auto; display: block; padding: 10px; border: 1px solid black; border-radius: 5px;">Guardar</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="reservacionModal" tabindex="-1" aria-labelledby="reservacionModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content" style="border-radius: 15px;">
-                <!-- Borde superior gris y cerrar ventana -->
-                <div class="modal-header"
-                    style="background-color: rgb(106, 99, 99); border-top-left-radius: 13px; border-top-right-radius: 13px; height: 20px;">
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
-                        style="background-color: transparent; border: none; padding: 0; font-size: 15px; margin-right: 3px;"></button>
-                </div>
-                <!-- Título -->
-                <h5 class="modal-title" id="reservacionModalLabel" style="margin-left: 15px;">Metro CDMX</h5>
-
-                <div class="modal-body">
-                    <!-- Evento -->
-                    <div class="mb-3">
-                        <label class="form-label">EVENTO</label>
-                        <div class="input-group" style="position: relative;">
-                            <input type="text" class="form-control" id="evento" placeholder="Ingrese el evento"
-                                style="border: 1px solid black; padding-right: 35px; ">
-                            <i class="fas fa-calendar fa-lg input-icon"></i>
-                        </div>
-                    </div>
-
-                    <!-- Área -->
-                    <div class="mb-3">
-                        <label class="form-label">ÁREA</label>
-                        <div class="input-group" style="position: relative;">
-                            <input type="text" class="form-control" id="area" placeholder="Ingrese el área"
-                                style="border: 1px solid black; padding-right: 35px;">
-                            <i class="fas fa-map-marker fa-lg input-icon"></i>
-                        </div>
-                    </div>
-
-                    <!-- Comentarios -->
-                    <div class="mb-3">
-                        <label class="form-label">COMENTARIOS</label>
-                        <div class="input-group" style="position: relative;">
-                            <textarea class="form-control" id="comentarios" rows="2"
-                                placeholder="Ingrese sus comentarios"
-                                style="resize: none; border: 1px solid black; padding-right: 35px;"></textarea>
-                            <i class="fas fa-comment fa-lg input-icon"></i>
-                        </div>
-                        <p>Max 20 palabras</p>
-                    </div>
-
-                    <!-- Fecha -->
-                    <div class="mb-3">
-                        <label class="form-label">FECHA</label>
-                        <div class="input-group" style="position: relative;">
-                            <input type="date" class="form-control" id="fechaReservacion"
-                                style="border: 1px solid black; padding-right: 35px;">
-                            <i class="fas fa-calendar fa-lg input-icon" style="right: 10px;"></i>
-                        </div>
-                    </div>
-
-                    <!-- Hora inicio y fin -->
-                    <div class="row">
-                        <div class="col-6">
-                            <div class="mb-3">
-                                <label class="form-label">H. INICIO</label>
-                                <div class="input-group" style="position: relative;">
-                                    <input type="time" class="form-control" id="horaInicio"
-                                        style="border: 1px solid black; padding-right: 35px;">
-                                    <i class="fas fa-clock fa-lg input-icon"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="mb-3">
-                                <label class="form-label">H. FINALIZACIÓN</label>
-                                <div class="input-group" style="position: relative;">
-                                    <input type="time" class="form-control" id="horaFin"
-                                        style="border: 1px solid black; padding-right: 35px;">
-                                    <i class="fas fa-clock fa-lg input-icon"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Sala de juntas -->
-                    <div class="mb-3">
-                        <label class="form-label">SALA DE JUNTAS</label>
-                        <div class="input-group" style="position: relative;">
-                            <input type="text" class="form-control" id="salaJuntas"
-                                placeholder="Ingrese la sala de juntas"
-                                style="border: 1px solid black; padding-right: 35px;">
-                            <i class="fas fa-building fa-lg input-icon"></i>
-                        </div>
-                    </div>
-
-                    <!-- Número de personas -->
-                    <div class="mb-3">
-                        <label class="form-label">NÚMERO DE PERSONAS</label>
-                        <div class="input-group" style="position: relative;">
-                            <input type="number" class="form-control" id="numPersonas"
-                                placeholder="Ingrese el número de personas"
-                                style="border: 1px solid black; padding-right: 35px;">
-                            <i class="fas fa-users fa-lg input-icon"></i>
-                        </div>
-                    </div>
-                    <!-- Botón reservar -->
-                    <button type="submit" class="btn" style="background-color: #ff6200; 
-                color: black; width: 50%; margin: 0 auto; display: block; padding: 10px;
-                border: 1px solid black; border-radius: 5px;">Reservar</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% include 'modal-password.html' %}
 
     <style>
         body {
@@ -265,31 +146,47 @@
 
         .ContenedorIconos {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            padding: 20px; /* Reducido el padding */
-            flex-wrap: wrap; /* Agregado para que los elementos se alineen abajo cuando no haya espacio */
-            gap: 9px; /* Agregado para dar espacio entre los iconos de manera más controlada */
-            margin-top: 50px;
+            margin-top: 20px;
+        }
+
+        .BotonesArriba {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+
+        .BotonesAbajo {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 15px;
         }
 
         .CambioContraseña,
         .Reservacion,
         .Graficos,
+        .Proyectado,
         .Notificaciones,
-        .Camara {
+        .Camara,
+        .Gestion {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin: 10px; /* Reducido el margen */
+            margin: 10px;
         }
 
-        .icono1, .icono2, .icono3, .icono4, .icono5 {
-            font-size: 40px; /* Reducido el tamaño de los iconos */
+        .BotonesAbajo .Notificaciones,
+        .BotonesAbajo .Camara,
+        .BotonesAbajo .Gestion {
+            margin: 5px 25px; /* Ajusta el margen lateral */
+        }
+
+        .icono1, .icono2, .icono3, .icono4, .icono5, .icono6 {
+            font-size: 40px;
             margin-bottom: 5px;
             color: black;
         }
-
         .boton a {
             text-decoration: underline;
             color: #000;
@@ -315,7 +212,7 @@
         }
 
         .footer-logi {
-            margin-top: 70px; /* Empuja el contenido hacia abajo */
+            margin-top: 25px; /* Empuja el contenido hacia abajo */
             text-align: center; /* Centra el texto */
             padding-bottom: 20px;
         }
@@ -354,23 +251,30 @@
             }
             
             .ContenedorIconos {
-                flex-direction: column; /* Alinear iconos verticalmente */
-                margin-top: -5px;
+                flex-direction: column;
+            }
+            
+            .BotonesArriba, .BotonesAbajo {
+                flex-direction: column;
+                align-items: center;
             }
             
             .CambioContraseña,
             .Reservacion,
             .Graficos,
+            .Proyectado,
             .Notificaciones,
-            .Camara {
-                margin: 5px 0; 
-                flex-direction: row; 
+            .Camara,
+            .Gestion {
+                margin: 5px 0;
+                flex-direction: row;
             }
             
-            .icono1, .icono2, .icono3, .icono4, .icono5 {
-                font-size: 30px; 
-                margin-right: 10px; 
+            .icono1, .icono2, .icono3, .icono4, .icono5, .icono6 {
+                font-size: 30px;
+                margin-right: 10px;
             }
+
             .footer-logi {
                 margin-top: -10px; /* Ajusta este valor según tus necesidades */
             }

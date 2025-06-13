@@ -35,7 +35,8 @@
             </a>
             <p>Usuario: {{ request.user.username }}</p>
         </div>
-        <h4 style="margin-right: 417px;">Envio de correos a usuarios</h4>
+        <h4 style="margin-right: 417px;">Envió de correos a usuarios</h4>
+        
         <form method="post">
             {% csrf_token %}
             <input type="hidden" id="destinatariosSeleccionados" name="destinatarios">
@@ -253,6 +254,42 @@
 
         .info-container p {
             margin: 0;
+        }
+
+        @media (max-width: 768px) {
+            .Logos {
+                justify-content: center;
+                gap: 20px;
+            }
+            .info-container {
+                display: flex;
+                justify-content: center;
+                gap: 15px;
+                margin-right: 75px;
+            }
+            .info-container .home-link {
+                margin-right: 85px;
+            }
+            h4 {
+                text-align: center;
+                margin-top: 20px;
+                margin-right: 29px !important;
+            }
+
+            form div[style*="flex-direction: column"] {
+                align-items: center;
+                margin-left: 0 !important;
+            }
+
+            form div[style*="flex-direction: column"] > div {
+                margin-left: 0 !important;
+                justify-content: center;
+            }
+
+            textarea {
+                width: 100%;
+                max-width: 300px;
+            }
         }
     </style>
 

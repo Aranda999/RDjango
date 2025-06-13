@@ -1,0 +1,84 @@
+{% for reservacion in reservaciones %}
+<div class="modal fade" id="eliminarReservacion{{ reservacion.id_reservacion }}" tabindex="-1"
+    aria-modal="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius: 15px;">
+            <div class="modal-header"
+                style="background-color: rgba(61, 50, 50, 0.77); border-top-left-radius: 13px; border-top-right-radius: 13px; height: 20px;">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                    style="background-color: transparent; border: none; padding: 0; font-size: 15px; margin-right: 3px;"></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 16px;">¿Estás seguro de eliminar la siguiente reservación?</p>
+                <table class="table table-striped">
+                    <tbody>
+                        <tr>
+                            <th style="width: 30%; font-weight: bold;">Evento</th>
+                            <td>{{ reservacion.evento }}</td>
+                        </tr>
+                        <tr>
+                            <th style="width: 30%; font-weight: bold;">Fecha y Hora</th>
+                            <td>{{ reservacion.fecha }} de {{ reservacion.hora_inicio }} a {{ reservacion.hora_final }}</td>
+                        </tr>
+                        <tr>
+                            <th style="width: 30%; font-weight: bold;">Sala de Juntas</th>
+                            <td>{{ reservacion.sala.nombre }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <label for="motivo-eliminacion-{{ reservacion.id_reservacion }}">Motivo de eliminación:</label>
+                <textarea id="motivo-eliminacion-{{ reservacion.id_reservacion|safe }}" class="form-control" rows="2" style="resize: none;" oninput="habilitarBoton('{{ reservacion.id_reservacion }}')" required></textarea>
+                <span id="palabras-restantes-{{ reservacion.id_reservacion|safe }}">Máx 20 palabras</span>
+                <input type="hidden" id="csrf-token-{{ reservacion.id_reservacion }}" value="{{ csrf_token }}">
+                <button type="button" class="btn"
+                style="width: 50%; margin: 15px auto 0 auto; display: block; padding: 10px; border: 1px solid black; border-radius: 5px; background-color: #ff6200; color: black;"
+                id="boton-eliminar-{{ reservacion.id_reservacion|safe }}" disabled onclick="eliminarReservacion('{{ reservacion.id_reservacion }}')">Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<script>
+    function habilitarBoton(id_reservacion) {
+        var motivo = document.getElementById("motivo-eliminacion-" + id_reservacion).value;
+        var boton = document.getElementById("boton-eliminar-" + id_reservacion);
+        var palabras = motivo.trim().split(/\s+/);
+        if (palabras.length > 20 && motivo.endsWith(" ")) {
+            document.getElementById("motivo-eliminacion-" + id_reservacion).value = palabras.slice(0, 20).join(" ");
+        } else if (palabras.length > 20) {
+            var ultimaPalabra = palabras[palabras.length - 1];
+            var resto = ultimaPalabra.substring(0, ultimaPalabra.length - 1);
+            document.getElementById("motivo-eliminacion-" + id_reservacion).value = palabras.slice(0, 19).join(" ") + " " + resto;
+        }
+        if (document.getElementById("motivo-eliminacion-" + id_reservacion).value.trim() !== "") {
+            boton.disabled = false;
+        } else {
+            boton.disabled = true;
+        }
+    }
+
+    function eliminarReservacion(id_reservacion) {
+        var motivo = document.getElementById("motivo-eliminacion-" + id_reservacion).value;
+        $.ajax({
+            type: 'POST',
+            url: '{% url "eliminar_reservacion" 0 %}'.replace('0', id_reservacion),
+            headers: {'X-CSRFToken': document.getElementById("csrf-token-" + id_reservacion).value},
+            data: {
+                motivo: motivo
+            },
+            success: function(data) {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    mostrarError(data.error);
+                }
+            }
+        });
+    }
+    $(document).on('hidden.bs.modal', '.modal', function () {
+        console.log('Modal cerrado');
+        $(this).find('textarea').val('');
+    });
+
+</script>

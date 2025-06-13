@@ -21,6 +21,8 @@ from api.models import Reservacion, Invitado, ReservacionInvitado
 from django.core.mail import send_mail
 from datetime import date, timedelta
 from collections import defaultdict
+from django.contrib import messages
+
 
 def graficos(request):
     mes = request.GET.get('mes')
@@ -187,12 +189,13 @@ def editar_reservacion(request, pk):
                             <p>Atentamente,</p>
                             <p>{reservacion.usuario.username}</p>
                         """
-                    send_mail(subject, "", 'noreply@miapp.com', [invitado.correo], html_message=message)
+                    send_mail(subject, "", 'informatica.cdt.stc@gmail.com', [invitado.correo], html_message=message)
 
             return JsonResponse({'success': True})
 
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
 
 def get_destinatarios_por_area(request):
     try:
@@ -270,8 +273,6 @@ def guardar_invitados(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
     
-
-
 def obtener_semanas_reservaciones():
     hoy = date.today()
     reservas = Reservacion.objects.filter(fecha__gte=hoy).order_by('fecha', 'hora_inicio')
@@ -301,8 +302,6 @@ def vista_reservas_semanales(request):
 
     return render(request, 'reservas_semanales.html', {'datos': datos})
 
-
-
 def enviar_notificacion(request):
     if request.method == 'POST':
         mensaje = request.POST.get('mensaje')
@@ -324,3 +323,37 @@ def enviar_notificacion(request):
 
     areas = Area.objects.all()  
     return render(request, 'enviar_notificacion.html', {'areas': areas})
+
+
+
+def eliminar_reservacion(request, pk):
+    reservacion = get_object_or_404(Reservacion, id_reservacion=pk)
+    motivo = request.POST.get('motivo')
+    
+    # Enviar correo a admin con motivo
+    subject_admin = f"Reservación eliminada: {reservacion.evento}"
+    message_admin = f"""
+        <h2>Reservación eliminada</h2>
+        <p>La reservación para {reservacion.evento} ha sido eliminada.</p>
+        <p>Fecha: {reservacion.fecha}</p>
+        <p>Hora de inicio: {reservacion.hora_inicio}</p>
+        <p>Hora de fin: {reservacion.hora_final}</p>
+        <p>Motivo de eliminación: {motivo}</p>
+    """
+    send_mail(subject_admin, "", 'informatica.cdt.stc@gmail.com', ['eliasaranda055@gmail.com'], html_message=message_admin)
+    
+    # Enviar correo a invitados
+    invitados = Invitado.objects.filter(reservacioninvitado__reservacion=reservacion)
+    for invitado in invitados:
+        subject = f"Reservación eliminada: {reservacion.evento}"
+        message = f"""
+            <h2>Reservación eliminada</h2>
+            <p>La reservación para {reservacion.evento} ha sido eliminada.</p>
+            <p>Fecha: {reservacion.fecha}</p>
+            <p>Hora de inicio: {reservacion.hora_inicio}</p>
+            <p>Hora de fin: {reservacion.hora_final}</p>
+        """
+        send_mail(subject, "", 'informatica.cdt.stc@gmail.com', [invitado.correo], html_message=message)
+    
+    reservacion.delete()
+    return JsonResponse({'success': True})

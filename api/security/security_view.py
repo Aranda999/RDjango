@@ -37,7 +37,7 @@ def HomeUser(request):
         logout(request)
 
         # Mensaje de éxito y redirigir al login
-        messages.success(request, "Contraseña cambiada exitosamente. Por favor, vuelve a iniciar sesión.")
+        messages.success(request, "Contraseña cambiada. Por favor, vuelve a iniciar sesión.")
         return redirect('login')  # Redirige al login después de cerrar sesión
 
     # Si no es un POST, solo se muestra el formulario
@@ -67,7 +67,13 @@ def Password(request):
             })
 
             # Envia correo
-            send_mail(subject, message, settings.EMAIL_HOST_USER, [email])
+            send_mail(
+                subject,
+                '',
+                settings.EMAIL_HOST_USER,
+                [email],
+                html_message=message,
+            )
 
             # Mensajes sea la situacion que sea
             return render(request, template_name, {'mensaje': 'Correo enviado con éxito'})

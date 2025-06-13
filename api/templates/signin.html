@@ -24,27 +24,27 @@
         <!--Logos y titulos de la ventana de inicio-->
         <div class="Logos">
             <img src="{% static 'img/IconCdmx.png' %}" alt="Logo 1" class="logo" 
-            style="height: 55px; width: 210px; position: relative; top: 10px; margin-left: 20px;">
+            style="height: 55px; width: 200px; position: relative; top: 10px; margin-left: 20px;">
             <img src="{% static 'img/IconMetro.webp' %}" alt="Logo 2" class="logo" 
-            style="height: 60px; width: 120px; margin-left: 30px; position: relative; top: 10px;">
-            <p class="title">BIENVENIDO LOGIN ACCESS</p>
-            <i class="fa-solid fa-user" style="color: black; margin-left: 40px; position: relative; top: 40px; font-size: 30px;"></i>
+            style="height: 45px; width: 90px; margin-left: 45px; position: relative; top: 10px;">
+            <p class="title">BIENVENIDO AL SISTEMA</p>
+            <i class="fa-solid fa-user" style="color: black; margin-left: 75px; position: relative; top: 40px; font-size: 30px;"></i>
             <i class="fa-solid fa-lock" style="color: black; margin-left: -30px; position: relative; top: 115px; font-size: 30px;"></i>
         </div>
         <!--Codigo del formulario para autentificacion dentro de la ventana principal-->
         <form method="POST">
             {% csrf_token %}
             <!-- Titulos y inputs del formulario -->
-            <div class="d-flex flex-column align-items-start" style="margin-left: 90px;">
+            <div class="d-flex flex-column align-items-start" style="margin-left: 115px;">
                 <label for="floatingInput" style="color: black; font-size: 12px; font-weight: bold;">USERNAME</label>
-                <input type="text" class="form-control shadow-sm" id="floatingInput" name="username" placeholder="name@example.com" required 
-                style="width: 220px; height: 23px;">
+                <input type="text" class="form-control shadow-sm" id="floatingInput" name="username" placeholder="Usuario" required 
+                style="width: 200px; height: 23px;">
             </div>
-            <div class="d-flex flex-column align-items-start" style="margin-left: 90px;">
+            <div class="d-flex flex-column align-items-start" style="margin-left: 115px;">
                 <label for="floatingPassword" style="color: black; font-size: 12px; font-weight: bold; position: relative; top: 35px;">PASSWORD</label>
                 <div style="position: relative;">
-                    <input type="password" class="form-control shadow-sm" id="floatingPassword" name="password" placeholder="Password" required 
-                    style="width: 220px; height: 23px; position: relative; top: 35px;">
+                    <input type="password" class="form-control shadow-sm" id="floatingPassword" name="password" placeholder="Contraseña" required 
+                    style="width: 200px; height: 23px; position: relative; top: 35px;">
                     <span id="togglePassword" style="position: absolute; top: 35px; right: 10px; cursor: pointer;">
                         <i class="fa fa-eye" aria-hidden="true"></i>
                     </span>
@@ -52,15 +52,15 @@
             </div>
             <!--Boton que compara los datos ingresados en la base de datos para el acceso al sistema-->
             <button type="submit" class="bn btn-lg shadow-sm" 
-            style="background-color: #ff6200; border-radius: 5px; width: 280px; height: 30px; position: relative; 
-            top: 80px; display: flex; justify-content: center; align-items: center; margin-left: 55px; 
-            border: 1px solid #000; font-size: 16px;">ACCESS</button>
+            style="background-color: #ff6200; border-radius: 5px; width: 200px; height: 35px; position: relative; 
+            top: 70px; display: flex; justify-content: center; align-items: center; margin-left: 100px; 
+            border: 1px solid #000; font-size: 16px;">Acceso</button>
             <!--Url que permite al usuario dirigirse al otra ventana para la recuperacion al acceso al sistema por medio de email-->
             <a href="{% url 'password' %}" class="" 
-            style="position: relative; top: 100px; margin-left: 130px; text-decoration: underline; color: black;">solicitar contraseña</a>
+            style="position: relative; top: 85px; margin-left: 145px; text-decoration: underline; color: black;">Solicitar Acceso</a>
             <!--Imagen de adorno inferior del formulario-->
             <img src="{% static 'img/footer.jpg' %}" alt="Logo 2" class="logo" 
-            style="height: 60px; width: 399px; margin-left: -1px; position: relative; top: 196px; 
+            style="height: 60px; width: 399px; margin-left: -1px; position: relative; top: 170px; 
             border-radius: 0px 0px 10px 10px; filter: sepia(0.5) saturate(1.5) hue-rotate(340deg);">
             <!--Manejo de errores dentro del mismo formuario de autentificacion-->
             {% if error %}
@@ -69,7 +69,7 @@
         </form>
         <!--Manejo de errores de cerrar sesion-->
         {% if messages %}
-        <div class="alert alert-info" style = "height: 60px; position: relative; top: 50px;">
+        <div class="alert alert-info" style = "height: 62px; position: relative; top: 40px;">
             {% for message in messages %}
                 <p style = "font-size: 14px; text-align: center; " >{{ message }}</p>
             {% endfor %}
@@ -85,7 +85,7 @@
     <style>
         .LoginContainer {
             width: 400px; 
-            height: 575px;
+            height: 540px;
             margin: 40px auto;
             margin-top: 100px;
             background-color: rgb(255, 255, 255);
@@ -93,7 +93,7 @@
             border-radius: 10px; 
         }
         .title{
-        margin-left: 82px;
+        margin-left: 100px;
         font-weight: bold;
         margin-top: 45px;
         font-family: 'Times New Roman', Times, serif;

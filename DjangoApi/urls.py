@@ -30,12 +30,14 @@ from api.log.login_view import Logout
 from api.tools.tools_view import graficos
 from api.tools.tools_view import get_destinatarios_por_area
 from api.tools.tools_view import get_invitados
+from api.tools.tools_view import eliminar_reservacion
 from api.tools.tools_view import guardar_invitados
 from api.tools.tools_view import vista_reservas_semanales
 from api.tools.tools_view import enviar_notificacion
 from api.security.security_view import Password
 from api.security.security_view import reset_password
 from api.video.video_view import camera_view
+from api.controller.control_view import administracion
 from django.contrib.auth.decorators import login_required 
 
 admin.site.login_url = reverse_lazy('login')
@@ -59,6 +61,8 @@ urlpatterns = [
     path('notificacion/', Notificaciones, name='notificacion'),
     path('enviar_notificacion/', enviar_notificacion, name='enviar_notificacion'),
     path('camera/', camera_view, name='camera_view'),
+    path('administracion/', administracion, name='administracion'),
+    path('eliminar_reservacion/<int:pk>/', eliminar_reservacion, name='eliminar_reservacion'),
 
 ]
 
