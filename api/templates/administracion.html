@@ -125,6 +125,8 @@
     </div>
     {% include 'reservation_edit.html' %}
 
+
+
     {% for reservacion in reservaciones %}
         <div class="modal fade" id="confirmarEliminacion{{ reservacion.id_reservacion }}" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered" style="margin-top: -50px;">
@@ -165,6 +167,10 @@
             </div>
         </div>
     {% endfor %}
+
+
+
+
     
     <style>
         body {

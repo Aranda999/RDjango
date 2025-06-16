@@ -244,12 +244,6 @@
         }
     </style>
 
-    <script>
-                    // Ocultar el spinner cuando la página haya terminado de cargar
-        window.addEventListener('load', function () {
-            document.getElementById('spinner').style.display = 'none';
-        });
-    </script>
 
     <script>
         function openTabGeneric(evt, tabName, tabContentClass, tabClass) {
@@ -324,6 +318,14 @@
             if (ano) {
                 document.getElementById('ano').value = ano;
             }
+        });
+    </script>
+
+    
+    <script>
+                    // Ocultar el spinner cuando la página haya terminado de cargar
+        window.addEventListener('load', function () {
+            document.getElementById('spinner').style.display = 'none';
         });
     </script>
 
