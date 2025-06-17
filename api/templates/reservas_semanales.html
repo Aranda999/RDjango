@@ -23,11 +23,12 @@
             <img src="{% static 'img/IconCdmx.png' %}" alt="Logo 1" class="logo-1">
             <img src="{% static 'img/IconMetro.webp' %}" alt="Logo 2" class="logo-2">
         </div>
-
         <div class="reservas-container">
             {% for semana in datos %}
                 <div class="semana">
                     <div class="titulo-semana">{{ semana.rango }}</div>
+
+                    <!-- Tabla de reservaciones -->
                     <table class="tabla-reservas">
                         <thead>
                             <tr>
@@ -40,8 +41,15 @@
                         </thead>
                         <tbody>
                             {% for r in semana.reservas %}
-                                <tr>
-                                    <td>{{ r.evento }}</td>
+                                <tr class="{% if r.en_curso %}reserva-en-curso{% elif r.proxima %}reserva-proxima{% endif %}">
+                                    <td>
+                                        {{ r.evento }}
+                                        {% if r.en_curso %}
+                                            <span class="etiqueta-curso">En curso</span>
+                                        {% elif r.proxima %}
+                                            <span class="etiqueta-proxima">Próxima</span>
+                                        {% endif %}
+                                    </td>
                                     <td>{{ r.fecha|date:"d/m/Y" }}</td>
                                     <td>{{ r.hora_inicio }} - {{ r.hora_final }}</td>
                                     <td>{{ r.sala.nombre }}</td>
@@ -54,15 +62,24 @@
                             {% endfor %}
                         </tbody>
                     </table>
+
+                    <!-- Tarjetas -->
                     <div class="reservas-tarjetas">
                         {% for r in semana.reservas %}
-                        <div class="reserva-card {% if forloop.last and forloop.parentloop.last %}ultima-carta{% endif %}">
-                            <div class="titulo"><strong>{{ r.evento }}</strong></div>
-                            <div class="detalle"><strong>Fecha:</strong> {{ r.fecha|date:"d/m/Y" }}</div>
-                            <div class="detalle"><strong>Hora:</strong> {{ r.hora_inicio }} - {{ r.hora_final }}</div>
-                            <div class="detalle"><strong>Sala:</strong> {{ r.sala.nombre }}</div>
-                            <div class="detalle"><strong>Comentarios:</strong> {% if r.comentarios %}{{ r.comentarios }}{% else %}-{% endif %}</div>
-                        </div>
+                            <div class="reserva-card {% if r.en_curso %}reserva-en-curso{% elif r.proxima %}reserva-proxima{% endif %} {% if forloop.last and forloop.parentloop.last %}ultima-carta{% endif %}">
+                                <div class="titulo">
+                                    <strong>{{ r.evento }}</strong>
+                                    {% if r.en_curso %}
+                                        <span class="etiqueta-curso">En curso</span>
+                                    {% elif r.proxima %}
+                                        <span class="etiqueta-proxima">Próxima</span>
+                                    {% endif %}
+                                </div>
+                                <div class="detalle"><strong>Fecha:</strong> {{ r.fecha|date:"d/m/Y" }}</div>
+                                <div class="detalle"><strong>Hora:</strong> {{ r.hora_inicio }} - {{ r.hora_final }}</div>
+                                <div class="detalle"><strong>Sala:</strong> {{ r.sala.nombre }}</div>
+                                <div class="detalle"><strong>Comentarios:</strong> {% if r.comentarios %}{{ r.comentarios }}{% else %}-{% endif %}</div>
+                            </div>
                         {% empty %}
                             <div class="reserva-card">
                                 <div class="detalle">No hay reservaciones.</div>
@@ -145,6 +162,44 @@
 
         .reservas-tarjetas {
             display: none;
+        }
+        .etiqueta-curso {
+            background-color: #27ae60;
+            color: white;
+            padding: 2px 6px;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            margin-left: 8px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .etiqueta-proxima {
+            background-color: #f39c12;
+            color: white;
+            padding: 2px 6px;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            margin-left: 8px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .reserva-en-curso {
+            background-color: #e0f7e9;
+            border-left: 5px solid #2ecc71;
+            animation: pulse 1.5s infinite;
+        }
+
+        .reserva-proxima {
+            background-color: #fff3e0;
+            border-left: 5px solid #ff9d00;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(46,204,113,0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(46,204,113,0); }
+            100% { box-shadow: 0 0 0 0 rgba(46,204,113,0); }
         }
 
         @media (max-width: 768px) {

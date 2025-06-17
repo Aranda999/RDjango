@@ -7,6 +7,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 import io
+from django.urls import reverse
 import base64
 import pandas as pd
 from datetime import timedelta
@@ -375,6 +376,7 @@ def editar_reservacion(request, pk):
             # Enviar correo electrónico a los invitados
             if invitados_seleccionados:
                 invitados = Invitado.objects.filter(id_invitado__in=invitados_seleccionados)
+                reservas_url = request.build_absolute_uri(reverse('reservas_semanales'))
                 for invitado in invitados:
                     subject = f"Actualización de Reservación: {reservacion.evento}"
                     if nombre_anterior != reservacion.evento:
@@ -389,7 +391,7 @@ def editar_reservacion(request, pk):
                                 <li>🕒 Hora de finalización: {reservacion.hora_final}</li>
                                 <li>🏢 Sala: {reservacion.sala.nombre}</li>
                             </ul>
-                            <p>Por favor, revise los detalles y confirme su asistencia.</p>
+                            <p>Puedes checar las reservaciones para esta semana en este enlace: <a href="{reservas_url}">Reservas semanales</a></p>
                             <p>Atentamente,</p>
                             <p>{reservacion.usuario.username}</p>
                         """
@@ -405,9 +407,9 @@ def editar_reservacion(request, pk):
                                 <li>🕒 Hora de finalización: {reservacion.hora_final}</li>
                                 <li>🏢 Sala: {reservacion.sala.nombre}</li>
                             </ul>
-                            <p>Por favor, revise los detalles y confirme su asistencia.</p>
-                            <p>Atentamente,</p>
-                            <p>{reservacion.usuario.username}</p>
+                        <p>Puedes checar las reservaciones para esta semana en este enlace: <a href="{reservas_url}">Reservas semanales</a></p>
+                        <p>Atentamente,</p>
+                        <p>{request.user.username}</p>
                         """
                     send_mail(subject, "", 'informatica.cdt.stc@gmail.com', [invitado.correo], html_message=message)
 
@@ -495,20 +497,44 @@ def guardar_invitados(request):
     
 def obtener_semanas_reservaciones():
     hoy = date.today()
-    reservas = Reservacion.objects.filter(fecha__gte=hoy).order_by('fecha', 'hora_inicio')
+    ahora = datetime.now()
+    anio, semana, _ = hoy.isocalendar()
 
-    # Agrupar por semana (año, número de semana)
+    # Obtener reservaciones de la semana actual
+    reservas = Reservacion.objects.filter(
+        fecha__week=semana,
+        fecha__year=anio
+    ).exclude(
+        fecha__lt=hoy
+    ).exclude(
+        fecha=hoy,
+        hora_final__lt=ahora.time()
+    ).order_by('fecha', 'hora_inicio')
+
+    # Agregar banderas en_curso y proxima
+    for r in reservas:
+        inicio = datetime.combine(r.fecha, r.hora_inicio)
+        fin = datetime.combine(r.fecha, r.hora_final)
+
+        r.en_curso = inicio <= ahora <= fin
+        r.proxima = False
+
+        if not r.en_curso and inicio > ahora:
+            minutos_restantes = (inicio - ahora).total_seconds() / 60
+            if minutos_restantes <= 30:
+                r.proxima = True
+
+    # Agrupar por semana (se mantiene la estructura)
     semanas = defaultdict(list)
-    for reserva in reservas:
-        anio, semana, _ = reserva.fecha.isocalendar()
-        semanas[(anio, semana)].append(reserva)
+    for r in reservas:
+        año_r, semana_r, _ = r.fecha.isocalendar()
+        semanas[(año_r, semana_r)].append(r)
 
     return semanas
 
 def vista_reservas_semanales(request):
     semanas_reservas = obtener_semanas_reservaciones()
 
-    # Construir datos para el template
     datos = []
     for (anio, semana), reservas in semanas_reservas.items():
         primer_dia_semana = date.fromisocalendar(anio, semana, 1)
@@ -517,8 +543,6 @@ def vista_reservas_semanales(request):
             'rango': f"Semana del {primer_dia_semana.strftime('%d %b')} al {ultimo_dia_semana.strftime('%d %b')}",
             'reservas': reservas
         })
-
-    datos.sort(key=lambda x: x['rango'])  # Ordenar cronológicamente
 
     return render(request, 'reservas_semanales.html', {'datos': datos})
 
@@ -549,16 +573,25 @@ def enviar_notificacion(request):
 def eliminar_reservacion(request, pk):
     reservacion = get_object_or_404(Reservacion, id_reservacion=pk)
     motivo = request.POST.get('motivo')
-    
+    reservas_url = request.build_absolute_uri(reverse('reservas_semanales'))
+
     # Enviar correo a admin con motivo
     subject_admin = f"Reservación eliminada: {reservacion.evento}"
     message_admin = f"""
-        <h2>Reservación eliminada</h2>
-        <p>La reservación para {reservacion.evento} ha sido eliminada.</p>
-        <p>Fecha: {reservacion.fecha}</p>
-        <p>Hora de inicio: {reservacion.hora_inicio}</p>
-        <p>Hora de fin: {reservacion.hora_final}</p>
-        <p>Motivo de eliminación: {motivo}</p>
+        <h2>🗑️ Notificación de Eliminación de Reservación</h2>
+        <p>Estimado/a administrador,</p>
+        <p>La reservación para <strong>{reservacion.evento}</strong> ha sido eliminada.</p>
+        <h3>Detalles de la Reservación eliminada:</h3>
+        <ul>
+            <li>📆 Fecha: {reservacion.fecha}</li>
+            <li>🕒 Hora de inicio: {reservacion.hora_inicio}</li>
+            <li>🕒 Hora de finalización: {reservacion.hora_final}</li>
+            <li>🏢 Sala: {reservacion.sala}</li>
+        </ul>
+        <p>Motivo de eliminación: <strong>{motivo}</strong></p>
+        <p>Puedes checar las reservaciones actuales en este enlace: <a href="{reservas_url}">Reservas</a></p>
+        <p>Atentamente,</p>
+        <p>{request.user.username}</p>
     """
     send_mail(subject_admin, "", 'informatica.cdt.stc@gmail.com', ['eliasaranda055@gmail.com'], html_message=message_admin)
     
@@ -567,11 +600,18 @@ def eliminar_reservacion(request, pk):
     for invitado in invitados:
         subject = f"Reservación eliminada: {reservacion.evento}"
         message = f"""
-            <h2>Reservación eliminada</h2>
-            <p>La reservación para {reservacion.evento} ha sido eliminada.</p>
-            <p>Fecha: {reservacion.fecha}</p>
-            <p>Hora de inicio: {reservacion.hora_inicio}</p>
-            <p>Hora de fin: {reservacion.hora_final}</p>
+            <h2>🗑️ Confirmación de Eliminación de Reservación</h2>
+            <p>La reservación para <strong>{reservacion.evento}</strong> ha sido eliminada.</p>
+            <h3>Detalles de la Reservación eliminada:</h3>
+            <ul>
+                <li>📆 Fecha: {reservacion.fecha}</li>
+                <li>🕒 Hora de inicio: {reservacion.hora_inicio}</li>
+                <li>🕒 Hora de fin: {reservacion.hora_final}</li>
+                <li>🏢 Sala: {reservacion.sala}</li>
+            </ul>
+            <p>Puedes checar las reservaciones actuales en este enlace: <a href="{reservas_url}">Reservas</a></p>
+            <p>Atentamente,</p>
+            <p>{request.user.username}</p>
         """
         send_mail(subject, "", 'informatica.cdt.stc@gmail.com', [invitado.correo], html_message=message)
     
