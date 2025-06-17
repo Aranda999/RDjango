@@ -34,6 +34,7 @@ from api.tools.tools_view import eliminar_reservacion
 from api.tools.tools_view import guardar_invitados
 from api.tools.tools_view import vista_reservas_semanales
 from api.tools.tools_view import enviar_notificacion
+from api.tools.tools_view import descargar_reporte_pdf
 from api.security.security_view import Password
 from api.security.security_view import reset_password
 from api.video.video_view import camera_view
@@ -63,6 +64,7 @@ urlpatterns = [
     path('camera/', camera_view, name='camera_view'),
     path('administracion/', administracion, name='administracion'),
     path('eliminar_reservacion/<int:pk>/', eliminar_reservacion, name='eliminar_reservacion'),
+    path('descargar-reporte-pdf/', descargar_reporte_pdf, name='descargar_reporte_pdf'),
 
 ]
 

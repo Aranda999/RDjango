@@ -22,8 +22,17 @@ from django.core.mail import send_mail
 from datetime import date, timedelta
 from collections import defaultdict
 from django.contrib import messages
+from django.db.models import Count
+from django.http import HttpResponse 
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.units import inch
+from reportlab.lib.utils import ImageReader
+from reportlab.lib.enums import TA_CENTER
+from reportlab.platypus import Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
 
-
+# Tu función graficos existente
 def graficos(request):
     mes = request.GET.get('mes')
     semana = request.GET.get('semana')
@@ -34,91 +43,302 @@ def graficos(request):
 
     if mes and ano:
         if semana:
-            # Filtro por semana
+            # Filtro por semana (tu lógica existente)
             first_day = date(int(ano), int(mes), 1)
-            first_day_weekday = first_day.weekday()
-            days_offset = (int(semana) - 1) * 7 - first_day_weekday
-            if days_offset < 0:
-                days_offset = 0
-            start_date = first_day + timedelta(days=days_offset)
+            first_day_weekday = first_day.weekday() 
+            first_monday_of_month_week = first_day - timedelta(days=first_day.weekday())
+
+            start_date = first_monday_of_month_week + timedelta(days=(int(semana) - 1) * 7)
             end_date = start_date + timedelta(days=6)
+
             reservaciones = reservaciones.filter(fecha__range=[start_date, end_date])
         else:
-            # Filtro por mes
+            # Filtro por mes (tu lógica existente)
             reservaciones = reservaciones.filter(fecha__month=mes, fecha__year=ano)
         filtros_seleccionados = True
 
     context = {
-        'anos': range(2025, datetime.now().year + 5),
+        'anos': range(datetime.now().year , datetime.now().year + 5), # Rango de años más dinámico
+        'imagen_usuario': None,
+        'imagen_sala_total': None,
+        'graficos_por_sala': None,
     }
 
     if filtros_seleccionados:
-        # --- Gráfico 1: Reservaciones por usuario ---
+        # --- Generación de gráficos (tu código existente, asegúrate de que se ejecute si hay datos) ---
+        
+        # Gráfico 1: Reservaciones por usuario
         reservaciones_por_usuario = reservaciones.values('usuario__username').annotate(total_reservaciones=Count('id_reservacion')).order_by('-total_reservaciones')
-        usuarios = [item['usuario__username'] for item in reservaciones_por_usuario]
-        cantidad_reservaciones_usuario = [item['total_reservaciones'] for item in reservaciones_por_usuario]
+        if reservaciones_por_usuario: # Solo genera si hay datos
+            usuarios = [item['usuario__username'] for item in reservaciones_por_usuario]
+            cantidad_reservaciones_usuario = [item['total_reservaciones'] for item in reservaciones_por_usuario]
+            df = pd.DataFrame({'usuario': usuarios, 'cantidad': cantidad_reservaciones_usuario})
+            
+            plt.figure(figsize=(11, 7))
+            colors = sns.color_palette("viridis", len(df))
+            sns.barplot(x='usuario', y='cantidad', data=df, palette=colors)
+            plt.xlabel("Usuario", fontsize=18)
+            plt.ylabel("Número de Reservaciones", fontsize=16)
+            plt.title("Total de Reservaciones por Usuario", fontsize=18)
+            plt.xticks(rotation=45, ha="right", fontsize=20)
+            plt.yticks(fontsize=18)
+            plt.tight_layout()
+            buffer_usuario = io.BytesIO()
+            plt.savefig(buffer_usuario, format='png')
+            buffer_usuario.seek(0)
+            context['imagen_usuario'] = base64.b64encode(buffer_usuario.read()).decode('utf-8')
+            plt.close()
 
-        df = pd.DataFrame({'usuario': usuarios, 'cantidad': cantidad_reservaciones_usuario})
-        plt.figure(figsize=(10, 6))
-        colors = sns.color_palette("viridis", len(df))
-        sns.barplot(x='usuario', y='cantidad', data=df, palette=colors)
-        plt.xlabel("Usuario", fontsize=16)
-        plt.ylabel("Número de Reservaciones", fontsize=16)
-        plt.title("Total de Reservaciones por Usuario", fontsize=18)
-        plt.xticks(rotation=45, ha="right", fontsize=14)
-        plt.yticks(fontsize=14)
-        plt.tight_layout()
-        buffer_usuario = io.BytesIO()
-        plt.savefig(buffer_usuario, format='png')
-        buffer_usuario.seek(0)
-        imagen_usuario_base64 = base64.b64encode(buffer_usuario.read()).decode('utf-8')
-        plt.close()
+        # Gráfico 2: Reservaciones por sala de juntas (en total)
+        reservaciones_por_sala_total = reservaciones.values('sala__nombre').annotate(total_reservaciones=Count('id_reservacion')).order_by('-total_reservaciones')
+        if reservaciones_por_sala_total:  # Solo genera si hay datos
+            salas = [item['sala__nombre'] for item in reservaciones_por_sala_total]
+            cantidad_reservaciones_sala = [item['total_reservaciones'] for item in reservaciones_por_sala_total]
+            
+            df = pd.DataFrame({
+                'sala': salas,
+                'reservaciones': cantidad_reservaciones_sala
+            })
 
-        # --- Gráfico 2: Reservaciones por sala de juntas (en total) ---
-        reservaciones_por_sala = reservaciones.values('sala__nombre').annotate(total_reservaciones=Count('id_reservacion')).order_by('-total_reservaciones')
-        salas = [item['sala__nombre'] for item in reservaciones_por_sala]
-        cantidad_reservaciones_sala = [item['total_reservaciones'] for item in reservaciones_por_sala]
+            plt.figure(figsize=(12, 8))
+            sns.barplot(x='sala', y='reservaciones', data=df, palette='crest', hue='sala', legend=False)
+            plt.title("Reservaciones por Sala de Juntas (Total)", fontsize=23)
+            plt.xlabel("Sala",fontsize=20 )
+            plt.ylabel("Reservaciones", fontsize=21)
+            plt.xticks(rotation=45, fontsize=20)
+            plt.tight_layout()
 
-        plt.figure(figsize=(8, 8))
-        plt.pie(cantidad_reservaciones_sala, labels=salas, autopct='%1.1f%%', startangle=140, colors=sns.color_palette("pastel"), textprops={'fontsize': 20})
-        plt.title("Reservaciones por Sala de Juntas (Total)", fontsize=20)
-        plt.tight_layout()
-        buffer_sala_total = io.BytesIO()
-        plt.savefig(buffer_sala_total, format='png')
-        buffer_sala_total.seek(0)
-        imagen_sala_total_base64 = base64.b64encode(buffer_sala_total.read()).decode('utf-8')
-        plt.close()
+            buffer_sala_total = io.BytesIO()
+            plt.savefig(buffer_sala_total, format='png')
+            buffer_sala_total.seek(0)
+            context['imagen_sala_total'] = base64.b64encode(buffer_sala_total.read()).decode('utf-8')
+            plt.close()
 
-        # --- Gráfico 3: Reservaciones por sala de juntas (separado) ---
-        graficos_por_sala = {}
+        # Gráfico 3: Reservaciones por sala de juntas (separado)
+        graficos_por_sala_dict = {}
         salas_juntas = SalaJuntas.objects.all()
         for sala in salas_juntas:
             reservas_sala = reservaciones.filter(sala=sala).values('usuario__username').annotate(total_reservaciones=Count('id_reservacion')).order_by('-total_reservaciones')
-            usuarios_sala = [item['usuario__username'] for item in reservas_sala]
-            cantidad_reservaciones_sala_usuario = [item['total_reservaciones'] for item in reservas_sala]
-
-            df_sala = pd.DataFrame({'usuario': usuarios_sala, 'cantidad': cantidad_reservaciones_sala_usuario})
-            plt.figure(figsize=(11, 8))
-            colors = sns.color_palette("mako", len(df_sala))
-            sns.barplot(x='usuario', y='cantidad', data=df_sala, palette=colors)
-            plt.xlabel("Usuario", fontsize=20)
-            plt.ylabel(f"Reservaciones en {sala.nombre}", fontsize=18)
-            plt.title(f"Reservaciones por el Usuario en Sala: {sala.nombre}", fontsize=20)
-            plt.xticks(rotation=45, ha="right", fontsize=22)
-            plt.yticks(fontsize=20)
-            plt.tight_layout()
-            buffer_sala_individual = io.BytesIO()
-            plt.savefig(buffer_sala_individual, format='png')
-            buffer_sala_individual.seek(0)
-            imagen_sala_individual_base64 = base64.b64encode(buffer_sala_individual.read()).decode('utf-8')
-            plt.close()
-            graficos_por_sala[sala.nombre] = imagen_sala_individual_base64
-
-        context['imagen_usuario'] = imagen_usuario_base64
-        context['imagen_sala_total'] = imagen_sala_total_base64
-        context['graficos_por_sala'] = graficos_por_sala
+            if reservas_sala: # Solo genera si hay datos para esta sala
+                usuarios_sala = [item['usuario__username'] for item in reservas_sala]
+                cantidad_reservaciones_sala_usuario = [item['total_reservaciones'] for item in reservas_sala]
+                df_sala = pd.DataFrame({'usuario': usuarios_sala, 'cantidad': cantidad_reservaciones_sala_usuario})
+                
+                plt.figure(figsize=(11, 8))
+                colors = sns.color_palette("mako", len(df_sala))
+                sns.barplot(x='usuario', y='cantidad', data=df_sala, palette=colors)
+                plt.xlabel("Usuario", fontsize=20)
+                plt.ylabel(f"Reservaciones en {sala.nombre}", fontsize=22)
+                plt.title(f"Reservaciones por el Usuario en Sala: {sala.nombre}", fontsize=22)
+                plt.xticks(rotation=45, ha="right", fontsize=22)
+                plt.yticks(fontsize=(20))
+                plt.tight_layout()
+                buffer_sala_individual = io.BytesIO()
+                plt.savefig(buffer_sala_individual, format='png')
+                buffer_sala_individual.seek(0)
+                imagen_sala_individual_base64 = base64.b64encode(buffer_sala_individual.read()).decode('utf-8')
+                plt.close()
+                graficos_por_sala_dict[sala.nombre] = imagen_sala_individual_base64
+        
+        if graficos_por_sala_dict: # Solo agrega al contexto si hay gráficos generados
+            context['graficos_por_sala'] = graficos_por_sala_dict
 
     return render(request, 'graficos.html', context)
+
+
+from io import BytesIO
+from PyPDF2 import PdfReader, PdfWriter
+from copy import deepcopy
+import os
+from django.conf import settings
+
+
+from textwrap import wrap
+
+def generar_pagina_resumen(base_page, titulo, resumen_texto):
+    temp = BytesIO()
+    can = canvas.Canvas(temp, pagesize=letter)
+
+    # 🏷️ Título en la parte superior
+    can.setFont("Helvetica-Bold", 16)
+    can.drawCentredString(300, 695, titulo)  # Ubicación del título (más arriba de lo que estaba antes)
+
+    # 📝 Resumen debajo del título
+    text = can.beginText()
+    text.setTextOrigin(70, 672)  # Más cerca del título
+    text.setFont("Helvetica", 12)
+    for linea in wrap(resumen_texto, width=95):
+        text.textLine(linea)
+
+    can.drawText(text)
+    can.save()
+    texto = PdfReader(BytesIO(temp.getvalue())).pages[0]
+    hoja = deepcopy(base_page)
+    hoja.merge_page(texto)
+    return hoja
+
+
+def descargar_reporte_pdf(request):
+    if request.method != 'POST':
+        return HttpResponse("Método no permitido", status=405)
+
+    mes = request.POST.get('mes_descarga')
+    semana = request.POST.get('semana_descarga')
+    ano = request.POST.get('ano_descarga')
+    graficos_seleccionados = request.POST.getlist('grafico')
+
+    reservaciones = Reservacion.objects.all()
+    nombre_archivo = "Reporte_Reservaciones"
+
+    if mes and ano:
+        if semana:
+            first_day = date(int(ano), int(mes), 1)
+            first_monday = first_day - timedelta(days=first_day.weekday())
+            start_date = first_monday + timedelta(weeks=int(semana) - 1)
+            end_date = start_date + timedelta(days=6)
+            reservaciones = reservaciones.filter(fecha__range=[start_date, end_date])
+            nombre_archivo += f"_Semana_{semana}_Mes_{mes}_Ano_{ano}"
+            fecha_rango = f"{start_date.strftime('%d de %B')} al {end_date.strftime('%d de %B de %Y')}"
+        else:
+            reservaciones = reservaciones.filter(fecha__month=mes, fecha__year=ano)
+            nombre_archivo += f"_Mes_{mes}_Ano_{ano}"
+            fecha_rango = f"{date(int(ano), int(mes), 1).strftime('%B de %Y')}"
+    else:
+        nombre_archivo += "_TodosLosDatos"
+        fecha_rango = "Todos los registros disponibles"
+
+    graficos_buffers = []
+
+    if 'usuario' in graficos_seleccionados:
+        datos = reservaciones.values('usuario__username').annotate(total=Count('id_reservacion')).order_by('-total')
+        if datos:
+            df = pd.DataFrame({
+                'usuario': [d['usuario__username'] for d in datos],
+                'cantidad': [d['total'] for d in datos],
+            })
+            plt.figure(figsize=(10, 6))
+            sns.barplot(x='usuario', y='cantidad', data=df, palette='viridis', hue='usuario', legend=False)
+            plt.xlabel('Usuario', fontsize=17)
+            plt.ylabel('Cantidad', fontsize=17)
+            plt.xticks(rotation=0, fontsize=16)
+            plt.tight_layout()
+            buffer_img = BytesIO()
+            plt.savefig(buffer_img, format='png')
+            buffer_img.seek(0)
+            graficos_buffers.append((buffer_img, "Reservaciones por Usuario"))
+            plt.close()
+
+    if 'sala_total' in graficos_seleccionados:
+        datos = reservaciones.values('sala__nombre').annotate(total=Count('id_reservacion')).order_by('-total')
+        if datos:
+            df = pd.DataFrame({
+                'sala': [d['sala__nombre'] for d in datos],
+                'cantidad': [d['total'] for d in datos],
+            })
+            plt.figure(figsize=(10, 6))
+            sns.barplot(x='sala', y='cantidad', data=df, palette='crest', hue='sala', legend=False)
+            plt.xlabel('Sala', fontsize=17)  # Cambia el tamaño de la etiqueta del eje X (sala)
+            plt.ylabel('Cantidad', fontsize=17)
+            plt.xticks(rotation=0, fontsize=16)
+            plt.tight_layout()
+            buffer_img = BytesIO()
+            plt.savefig(buffer_img, format='png')
+            buffer_img.seek(0)
+            graficos_buffers.append((buffer_img, "Reservaciones por Sala (Total)"))
+            plt.close()
+
+    if 'salas_separado' in graficos_seleccionados:
+        for sala in SalaJuntas.objects.all():
+            datos = reservaciones.filter(sala=sala).values('usuario__username').annotate(total=Count('id_reservacion')).order_by('-total')
+            if datos:
+                df = pd.DataFrame({
+                    'usuario': [d['usuario__username'] for d in datos],
+                    'cantidad': [d['total'] for d in datos],
+                })
+                plt.figure(figsize=(11, 7))
+                sns.barplot(x='usuario', y='cantidad', data=df, palette='mako', hue='usuario', legend=False)
+                plt.xlabel('Usuario', fontsize=18)  # Cambia el tamaño de la etiqueta del eje X (sala)
+                plt.ylabel('Cantidad', fontsize=18)
+                plt.xticks(rotation=0, fontsize=14)
+                plt.tight_layout()
+                buffer_img = BytesIO()
+                plt.savefig(buffer_img, format='png')
+                buffer_img.seek(0)
+                graficos_buffers.append((buffer_img, f"Reservaciones por Usuario en Sala: {sala.nombre}"))
+                plt.close()
+
+    ruta_plantilla = os.path.join(settings.BASE_DIR, 'api', 'report', 'GINP_FORMATO.pdf')
+    if not os.path.exists(ruta_plantilla):
+        return HttpResponse("No se encontró la plantilla PDF corporativa", status=500)
+
+    plantilla = PdfReader(ruta_plantilla)
+    base_page = plantilla.pages[0]
+    writer = PdfWriter()
+
+    def render_img_layer(buffer_img, titulo, y_offset):
+        temp = BytesIO()
+        can = canvas.Canvas(temp, pagesize=letter)
+        img = ImageReader(buffer_img)
+        iw, ih = img.getSize()
+        iw = min(iw, 410)
+        ih = iw * (img.getSize()[1] / img.getSize()[0])
+        x = (letter[0] - iw) / 2
+        y = y_offset  # Ubicación ajustada para mover las imágenes hacia abajo
+
+        can.setFont("Helvetica-Bold", 12)
+        can.drawCentredString(letter[0] / 2, y + ih + 15, titulo)
+        can.drawImage(img, x, y, width=iw, height=ih)
+        can.save()
+        return PdfReader(BytesIO(temp.getvalue())).pages[0]
+
+
+# Generar la primera página con título y resumen
+    resumen_texto = (
+        f"Rango de fechas: {fecha_rango}    "
+        f"Total de reservaciones: {reservaciones.count()}    "
+        f"Salas incluidas: {', '.join(sorted(reservaciones.values_list('sala__nombre', flat=True).distinct()))}"
+    )
+    primera_pagina_base = generar_pagina_resumen(base_page, "Reporte de Reservaciones", resumen_texto)
+
+    # Ahora, añadimos las gráficas debajo del resumen (y más abajo que antes)
+    i = 0
+    while i < len(graficos_buffers):
+        buf1, tit1 = graficos_buffers[i]
+        img1 = ImageReader(buf1)
+        w1, h1 = img1.getSize()
+        h1 = 440 * (h1 / w1)
+
+        usar_primera = (i == 0)
+
+        if i + 1 < len(graficos_buffers):
+            buf2, tit2 = graficos_buffers[i + 1]
+            img2 = ImageReader(buf2)
+            w2, h2 = img2.getSize()
+            h2 = 440 * (h2 / w2)
+            total_alto = h1 + h2 + 120
+
+            if total_alto <= 700:
+                capa = deepcopy(primera_pagina_base if usar_primera else base_page)
+                capa.merge_page(render_img_layer(buf1, tit1, y_offset=380))  # Ajustar la posición de las imágenes
+                capa.merge_page(render_img_layer(buf2, tit2, y_offset=100))
+                writer.add_page(capa)
+                i += 2
+                continue
+
+        capa = deepcopy(primera_pagina_base if usar_primera else base_page)
+        capa.merge_page(render_img_layer(buf1, tit1, y_offset=390))  # Ajuste del primer gráfico
+        writer.add_page(capa)
+        i += 1
+
+
+    output = BytesIO()
+    writer.write(output)
+    response = HttpResponse(output.getvalue(), content_type="application/pdf")
+    response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}.pdf"'
+    return response
+
+
+
 
 #Buenoooo
 def editar_reservacion(request, pk):

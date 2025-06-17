@@ -65,6 +65,10 @@
                 </select>
                 <button type="submit">Ver gráficas</button>
             </form>
+            <a id="botonGenerarPDF" href="#" onclick="mostrarSeccionDescarga(event)" 
+            style="text-decoration: underline; cursor: pointer; display: block; text-align: center;">
+                Generar Reporte
+            </a>
         </div>
 
         <div class="tab-container">
@@ -108,6 +112,55 @@
         </div>
     </div>
     
+
+    <div id="modalDescargaPdf"
+        style="display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5);">
+        <div
+            style="background-color: #faf5e7; margin: 10% auto; padding: 20px 25px; border-radius: 10px; width: 80%; max-width: 500px; position: relative; box-shadow: 0 0 15px rgba(0,0,0,0.3); border-left: 6px solid #ffa000;">
+            
+            <span onclick="cerrarModal()"
+                style="position: absolute; right: 15px; top: 10px; font-size: 28px; font-weight: bold; color: #d32f2f; cursor: pointer;">&times;</span>
+
+            <h2 style="text-align: center; color: #d32f2f; margin-bottom: 20px;">
+                <i class="fas fa-exclamation-triangle" style="margin-right: 10px; color: #f57c00;"></i>
+                Descargar Reporte PDF
+            </h2>
+
+            <form id="form-descarga-pdf" method="post" action="{% url 'descargar_reporte_pdf' %}">
+                {% csrf_token %}
+                <p style="margin-bottom: 10px;">Selecciona los gráficos que deseas incluir:</p>
+
+                <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+                    <label style="display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" name="grafico" value="usuario" checked> Reservaciones por Usuario
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" name="grafico" value="sala_total" checked> Reservaciones por Sala (Total)
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" name="grafico" value="salas_separado" checked> Reservaciones por Sala (Separado)
+                    </label>
+                </div>
+
+                <input type="hidden" name="mes_descarga" id="mes_descarga">
+                <input type="hidden" name="semana_descarga" id="semana_descarga">
+                <input type="hidden" name="ano_descarga" id="ano_descarga">
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px;">
+                    <button type="submit"
+                        style="background-color: white; color: black; border: 2px solid #ffa000; padding: 10px 16px; border-radius: 5px; cursor: pointer;">
+                        Descargar PDF
+                    </button>
+                    <button type="button" onclick="cerrarModal()"
+                        style="background-color: white; color: black; border: 1px solid #999; padding: 10px 16px; border-radius: 5px; cursor: pointer;">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
     <style>
         body {
             margin: 0;
@@ -242,10 +295,22 @@
             flex-wrap: wrap;
             gap: 10px;
         }
+        .disabled {
+            pointer-events: none;
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     </style>
 
 
     <script>
+        function mostrarSeccionDescarga() {
+            document.getElementById('modalDescargaPdf').style.display = 'block';
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalDescargaPdf').style.display = 'none';
+        }
         function openTabGeneric(evt, tabName, tabContentClass, tabClass) {
             var i, tabcontent, tablinks;
             tabcontent = document.getElementsByClassName(tabContentClass);
@@ -298,8 +363,13 @@
             }
         }
 
-        document.getElementById("mes").addEventListener("change", generarSemanas);
-        generarSemanas();
+        document.getElementById("mes").addEventListener("change", function() {
+            generarSemanas();
+            actualizarCamposDescargaPDF(); // Añadido
+        });
+
+        document.getElementById("semana").addEventListener("change", actualizarCamposDescargaPDF); // Añadido
+        document.getElementById("ano").addEventListener("change", actualizarCamposDescargaPDF); // Añadido
 
         // Agregar el valor seleccionado de mes y semana en el formulario
         document.addEventListener("DOMContentLoaded", function () {
@@ -318,7 +388,40 @@
             if (ano) {
                 document.getElementById('ano').value = ano;
             }
+            actualizarCamposDescargaPDF(); 
         });
+
+        function actualizarCamposDescargaPDF() {
+            document.getElementById('mes_descarga').value = document.getElementById('mes').value;
+            document.getElementById('semana_descarga').value = document.getElementById('semana').value;
+            document.getElementById('ano_descarga').value = document.getElementById('ano').value;
+        }
+        function validarDisponibilidadBotonPDF() {
+            const mes = document.getElementById('mes').value;
+            const ano = document.getElementById('ano').value;
+            const boton = document.getElementById('botonGenerarPDF');
+            if (mes && ano) {
+                boton.classList.remove('disabled');
+            } else {
+                boton.classList.add('disabled');
+            }
+        }
+
+        function mostrarSeccionDescarga(event) {
+            const boton = document.getElementById('botonGenerarPDF');
+            if (boton.classList.contains('disabled')) {
+                event.preventDefault();
+                return;
+            }
+            document.getElementById('modalDescargaPdf').style.display = 'block';
+        }
+
+        // Llamar esta función cada vez que cambie un campo
+        document.getElementById('mes').addEventListener('change', validarDisponibilidadBotonPDF);
+        document.getElementById('ano').addEventListener('change', validarDisponibilidadBotonPDF);
+
+        // También al cargar la página
+        document.addEventListener('DOMContentLoaded', validarDisponibilidadBotonPDF);
     </script>
 
     
