@@ -365,13 +365,13 @@
 
         document.getElementById("mes").addEventListener("change", function() {
             generarSemanas();
-            actualizarCamposDescargaPDF(); // Añadido
+            actualizarCamposDescargaPDF(); 
         });
 
-        document.getElementById("semana").addEventListener("change", actualizarCamposDescargaPDF); // Añadido
-        document.getElementById("ano").addEventListener("change", actualizarCamposDescargaPDF); // Añadido
+        document.getElementById("semana").addEventListener("change", actualizarCamposDescargaPDF); 
+        document.getElementById("ano").addEventListener("change", actualizarCamposDescargaPDF); 
 
-        // Agregar el valor seleccionado de mes y semana en el formulario
+        
         document.addEventListener("DOMContentLoaded", function () {
             const urlParams = new URLSearchParams(window.location.search);
             const mes = urlParams.get('mes');
@@ -416,11 +416,9 @@
             document.getElementById('modalDescargaPdf').style.display = 'block';
         }
 
-        // Llamar esta función cada vez que cambie un campo
+        
         document.getElementById('mes').addEventListener('change', validarDisponibilidadBotonPDF);
         document.getElementById('ano').addEventListener('change', validarDisponibilidadBotonPDF);
-
-        // También al cargar la página
         document.addEventListener('DOMContentLoaded', validarDisponibilidadBotonPDF);
     </script>
 

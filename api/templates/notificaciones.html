@@ -36,16 +36,16 @@
             <p>Usuario: {{ request.user.username }}</p>
         </div>
         <h4 style="margin-right: 417px;">Envió de correos a usuarios</h4>
-        
+        <!-- Metodo POST para la notificacion -->
         <form method="post">
             {% csrf_token %}
             <input type="hidden" id="destinatariosSeleccionados" name="destinatarios">
             <div style="display: flex; flex-direction: column; align-items: flex-start; margin-left: -260px;">
-                    <label style="color: black;">Mensaje</label>
-                    <textarea class="form-control form-control-sm" id="mensaje" name="mensaje" rows="4" maxlength="250"
+                <label style="color: black;">Mensaje</label>
+                <textarea class="form-control form-control-sm" id="mensaje" name="mensaje" rows="4" maxlength="250"
                         placeholder="Ingrese su mensaje"
                         style="resize: none; border: 1px solid black; width: 450px; overflow-y: hidden;"></textarea>
-                    <p style="margin-top: 5px; font-size: 12px; margin-bottom: 10px;">Max 50 palabras</p>
+                <p style="margin-top: 5px; font-size: 12px; margin-bottom: 10px;">Max 50 palabras</p>
                 <div style="display: flex; align-items: center; margin-left: 200px; margin-top: -25px;">
                     <button class="btn" type="button" id="boton-modal"
                         style="height: 35px; font-size: 13px; background-color: blanchedalmond; border: 1px solid black; color: black; margin-right: 20px;">
@@ -71,7 +71,7 @@
                     style="background-color: transparent; border: none; padding: 0; font-size: 15px; margin-right: 20px;"></button>
                 </div>
                 <div class="modal-body">
-                    <!-- Pestañas con abreviaturas -->
+                    <!-- Pestañas con abreviaturas de las areas -->
                     <ul class="nav nav-tabs" style="margin-top: -15px; border-bottom: 2px solid #ff6200;">
                         {% for area in areas %}
                         <li class="nav-item">
@@ -82,8 +82,7 @@
                         </li>
                         {% endfor %}
                     </ul>
-
-                    <!-- Contenido de cada pestaña -->
+                    <!-- Areas-->
                     <div class="tab-content mt-3">
                         {% for area in areas %}
                         <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" id="area-{{ area.id_area }}">
@@ -136,13 +135,13 @@
         });
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Código para mostrar el modal
+            // mostrar el modal
             document.getElementById('boton-modal').addEventListener('click', function() {
                 var modal = new bootstrap.Modal(document.getElementById('modalDestinatarios'));
                 modal.show();
             });
 
-            // Código para seleccionar todos y actualizar contador
+            // Selecctor para seleccionar todos
             var seleccionarTodos = document.querySelectorAll('[id^="seleccionar-todos"]');
             seleccionarTodos.forEach(function(button) {
                 button.addEventListener('click', function() {
@@ -180,7 +179,7 @@
                 verificarCampos();
             }
 
-            // Código para capturar destinatarios seleccionados
+            // Capturar destinatarios seleccionados
             document.querySelector('form').addEventListener('submit', function(event) {
                 var checkboxes = document.querySelectorAll('.destinatario-checkbox:checked');
                 var destinatarios = [];
@@ -190,7 +189,7 @@
                 document.getElementById('destinatariosSeleccionados').value = destinatarios.join(',');
             });
 
-            // Inicialmente deshabilitar el botón
+            // Desde el inicio deshabilitar el boton
             botonEnviar.disabled = true;
         });
     </script>

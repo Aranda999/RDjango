@@ -1,30 +1,29 @@
-from django.shortcuts import render, redirect
+# Funciones de Django 
+from collections import defaultdict
+from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Count
 from django.contrib.auth.models import User
-from api.models import Reservacion, SalaJuntas,Invitado,Area
+from django.urls import reverse
+from django.http import JsonResponse, HttpResponse
+from django.core.mail import send_mail
+from django.contrib import messages
+
+# Modelos de base de datos
+from api.models import Reservacion, SalaJuntas, Invitado, Area, ReservacionInvitado
+
+# Graficos 
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
-import io
-from django.urls import reverse
-import base64
 import pandas as pd
-from datetime import timedelta
-from datetime import datetime
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
+import io
+import base64
 import json
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import get_object_or_404
-from api.models import Reservacion, Invitado, ReservacionInvitado
-from django.core.mail import send_mail
-from datetime import date, timedelta
-from collections import defaultdict
-from django.contrib import messages
-from django.db.models import Count
-from django.http import HttpResponse 
+from datetime import date, datetime, timedelta
+import os
+
+# Reporte e imagenes
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
@@ -32,6 +31,12 @@ from reportlab.lib.utils import ImageReader
 from reportlab.lib.enums import TA_CENTER
 from reportlab.platypus import Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
+from io import BytesIO
+from PyPDF2 import PdfReader, PdfWriter
+from copy import deepcopy
+from textwrap import wrap
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
 
 # Tu función graficos existente
 def graficos(request):
@@ -147,14 +152,6 @@ def graficos(request):
     return render(request, 'graficos.html', context)
 
 
-from io import BytesIO
-from PyPDF2 import PdfReader, PdfWriter
-from copy import deepcopy
-import os
-from django.conf import settings
-
-
-from textwrap import wrap
 
 def generar_pagina_resumen(base_page, titulo, resumen_texto):
     temp = BytesIO()
@@ -495,12 +492,13 @@ def guardar_invitados(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
     
+# Vista para la proyeccio de reservaciones    
 def obtener_semanas_reservaciones():
     hoy = date.today()
     ahora = datetime.now()
     anio, semana, _ = hoy.isocalendar()
 
-    # Obtener reservaciones de la semana actual
+    # Reservaciones de la semana actual
     reservas = Reservacion.objects.filter(
         fecha__week=semana,
         fecha__year=anio
@@ -511,7 +509,7 @@ def obtener_semanas_reservaciones():
         hora_final__lt=ahora.time()
     ).order_by('fecha', 'hora_inicio')
 
-    # Agregar banderas en_curso y proxima
+    # Reservaciones en curso y proxima
     for r in reservas:
         inicio = datetime.combine(r.fecha, r.hora_inicio)
         fin = datetime.combine(r.fecha, r.hora_final)
@@ -524,7 +522,7 @@ def obtener_semanas_reservaciones():
             if minutos_restantes <= 30:
                 r.proxima = True
 
-    # Agrupar por semana (se mantiene la estructura)
+    # Agrupar por semana 
     semanas = defaultdict(list)
     for r in reservas:
         año_r, semana_r, _ = r.fecha.isocalendar()
