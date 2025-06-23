@@ -1,0 +1,390 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div id="spinner"
+        class="show position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+    <div class="LoginContainer">
+        <div class="Logos">
+            <img src="{% static 'img/IconCdmx.png' %}" alt="Logo 1" class="logo-1">
+            <img src="{% static 'img/IconMetro.webp' %}" alt="Logo 2" class="logo-2" style="width: 75px; height: 38px;">
+        </div>
+        <h4 style="text-align: center;">Reservación Periódica</h4>
+        <div id="mensaje-error" style="display: none; background: #fce4e4; border: 1px solid #f5c2c2; 
+        color: #a94442; font-size: 14px; border-radius: 5px;"></div>
+        <form method="post" action="{% url 'periodica' %}">
+            {% csrf_token %}
+
+            <label for="evento" style="display: block; margin-bottom: 5px;">Evento:</label>
+            <input type="text" id="evento" name="evento" required 
+            style="width: 100%; padding: 4px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px;">
+
+            <label for="comentarios" style="display: block; margin-bottom: 5px; margin-top: 10px;">Comentarios:</label>
+            <textarea id="comentarios" name="comentarios" rows="2" placeholder="Opcional..." 
+            style="width: 100%; padding: 4px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; resize: none;"></textarea>
+
+            <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+                <div style="width: 45%;">
+                    <label for="sala" style="display: block; margin-bottom: 5px;">Sala de juntas:</label>
+                    <select id="sala" name="sala" required 
+                            style="width: 100%; padding: 4px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px;">
+                        <option value="" selected disabled>Seleccione una sala</option>
+                        {% for sala in salas %}
+                            <option value="{{ sala.id_sala }}">{{ sala.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="width: 45%;">
+                    <label for="mes" style="display: block; margin-bottom: 5px;">Mes:</label>
+                    <select id="mes" name="mes" required 
+                        style="width: 100%; padding: 4px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px;">
+                        <option value="" disabled selected>Selecciona un mes</option>
+                        <option value="Enero">Enero</option>
+                        <option value="Febrero">Febrero</option>
+                        <option value="Marzo">Marzo</option>
+                        <option value="Abril">Abril</option>
+                        <option value="Mayo">Mayo</option>
+                        <option value="Junio">Junio</option>
+                        <option value="Julio">Julio</option>
+                        <option value="Agosto">Agosto</option>
+                        <option value="Septiembre">Septiembre</option>
+                        <option value="Octubre">Octubre</option>
+                        <option value="Noviembre">Noviembre</option>
+                        <option value="Diciembre">Diciembre</option>
+                    </select>
+                </div>
+            </div>
+
+            <label style="display: block; margin-bottom: 5px; margin-top: 10px;">Días de la semana:</label>
+            <div>
+                <label><input type="checkbox" name="dias" value="lunes"> Lunes</label>
+                <label><input type="checkbox" name="dias" value="martes"> Martes</label>
+                <label><input type="checkbox" name="dias" value="miércoles"> Miércoles</label>
+                <label><input type="checkbox" name="dias" value="jueves"> Jueves</label>
+                <label><input type="checkbox" name="dias" value="viernes"> Viernes</label>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+                <div style="width: 45%;">
+                    <label for="hora_inicio" style="display: block; margin-bottom: 5px;">Hora de inicio:</label>
+                    <input type="time" id="hora_inicio" name="hora_inicio" required 
+                        min="08:00" max="19:59"
+                        style="width: 100%; padding: 4px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px;">
+                </div>
+                <div style="width: 45%;">
+                    <label for="hora_final" style="display: block; margin-top: 10px;">Hora de finalización:</label>
+                    <input type="time" id="hora_final" name="hora_final" required 
+                        min="08:01" max="20:00"
+                        style="width: 100%; padding: 4px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px;">
+                </div>
+            </div>
+            <button type="button" id="verificar-fechas" style="padding: 6px 12px; background-color: #ff692e; color: #000; border: 1px solid #000; border-radius: 4px; cursor: pointer; margin-top: 18px; margin-left: 100px;">
+                Generar Reservaciones
+            </button>
+        </form>
+        <div class="footer-logi">
+            <a href="{% url 'home' %}" style="text-decoration: underline; color: black; margin-top: 0;">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                Regresar al Home
+            </a>
+        </div>
+    </div>
+
+    <div id="modal-confirmacion" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 9999;">
+        <div style="background: white; padding: 20px; width: 90%; max-width: 600px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); overflow-y: auto; max-height: 90vh;">
+            <h3 style="margin-top: 0;">Resumen de Reservación</h3>
+            <div id="contenido-modal" style="font-size: 14px;"></div>
+            <div style="margin-top: 20px; text-align: right;">
+            <button id="confirmar-reservas" disabled
+            style="background-color: #ccc; color: #fff; padding: 6px 12px; border: none; border-radius: 4px; cursor: not-allowed;">
+            Confirmar Reservaciones
+            </button>
+            <button type="button" onclick="document.getElementById('modal-confirmacion').style.display='none';" 
+                    style="margin-left: 10px; background-color: #ccc; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer;">
+                Cancelar
+            </button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const inicio = document.getElementById('hora_inicio');
+            const fin = document.getElementById('hora_final');
+            const mes = document.getElementById('mes');
+            const error = document.getElementById('mensaje-error');
+            const modal = document.getElementById('modal-confirmacion');
+            const contenido = document.getElementById('contenido-modal');
+            const form = document.querySelector("form");
+
+            function mostrarError(mensaje) {
+                error.innerText = mensaje;
+                error.style.display = 'block';
+            }
+
+            function limpiarError() {
+                error.innerText = '';
+                error.style.display = 'none';
+            }
+
+            function validarHoras() {
+                const hInicio = inicio.value;
+                const hFinal = fin.value;
+
+                if (!hInicio || !hFinal) return;
+
+                if (hInicio < "08:00") {
+                mostrarError("La hora de inicio debe ser a partir de las 08:00 am.");
+                inicio.value = '';
+                } else if (hFinal > "20:00") {
+                mostrarError("La hora de finalización debe ser antes de las 8:00 pm.");
+                fin.value = '';
+                } else if (hFinal <= hInicio) {
+                mostrarError("La hora final debe ser mayor que la hora de inicio.");
+                inicio.value = '';
+                fin.value = '';
+                } else {
+                limpiarError();
+                }
+            }
+
+            inicio.addEventListener("change", validarHoras);
+            fin.addEventListener("change", validarHoras);
+            inicio.addEventListener("input", limpiarError);
+            fin.addEventListener("input", limpiarError);
+
+            // Desactivar meses pasados
+            const hoy = new Date();
+            const mesActual = hoy.getMonth(); // enero = 0
+
+            const mesSelect = document.getElementById('mes');
+
+            for (let i = mesSelect.options.length - 1; i > 0; i--) {
+                const option = mesSelect.options[i];
+                const mesTexto = option.value.toLowerCase();
+                const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+                const indiceMes = meses.indexOf(mesTexto);
+
+                if (indiceMes < mesActual) {
+                    mesSelect.removeChild(option);
+                }
+            }
+            // Validar fechas antes de enviar
+            document.getElementById("verificar-fechas").addEventListener("click", function () {
+                const formData = new FormData(form);
+
+                fetch("{% url 'validar_periodicas' %}", {
+                method: "POST",
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                contenido.innerHTML = "";
+
+                if (data.error) {
+                    contenido.innerHTML = `<p style="color:red;">${data.error}</p>`;
+                } else {
+                    let html = "";
+
+                    if (data.conflictos.length > 0) {
+                    html += `<p style="color:red;">Estas fechas tienen conflictos:</p><ul>`;
+                    data.conflictos.forEach(f => {
+                        html += `<li><strong>${f.fecha}</strong> — ${f.evento} (${f.inicio} a ${f.fin})</li>`;
+                    });
+                    html += `</ul>`;
+                    }
+
+                    if (data.disponibles.length > 0) {
+                    html += `<p>Selecciona las fechas que deseas reservar:</p><form id="form-dinamico">`;
+                    data.disponibles.forEach(fecha => {
+                        html += `<label style="display:block; margin-bottom: 5px;">
+                                <input type="checkbox" name="fechas_validas[]" value="${fecha}" checked>
+                                ${fecha}
+                                </label>`;
+                    });
+                    html += `</form>`;
+                    } else {
+                        html += `<p style="color:red;">No hay fechas disponibles para reservar.</p>`;
+                    }
+
+                    contenido.innerHTML = html;
+                    setTimeout(() => {
+                        document.querySelectorAll('#form-dinamico input[type="checkbox"]').forEach(cb => {
+                            cb.addEventListener('change', validarFechasSeleccionadasEnModal);
+                        });
+                        validarFechasSeleccionadasEnModal(); 
+                    }, 10);
+                }
+
+                modal.style.display = "flex";
+                })
+                .catch(err => {
+                contenido.innerHTML = `<p style="color:red;">Error al validar fechas.</p>`;
+                modal.style.display = "flex";
+                console.error(err);
+                });
+            });
+
+            // Confirmación final: solo se envían fechas seleccionadas
+            document.getElementById("confirmar-reservas").addEventListener("click", function () {
+                const seleccionadas = document.querySelectorAll('#form-dinamico input[type="checkbox"]:checked');
+                document.querySelectorAll("input[name='fechas_validas[]']").forEach(e => e.remove());
+
+                seleccionadas.forEach(cb => {
+                const hidden = document.createElement("input");
+                hidden.type = "hidden";
+                hidden.name = "fechas_validas[]";
+                hidden.value = cb.value;
+                form.appendChild(hidden);
+                });
+
+                modal.style.display = "none";
+                form.submit();
+            });
+
+            function validarFormulario() {
+                const campos = [
+                    document.getElementById('evento'),
+                    document.getElementById('sala'),
+                    document.getElementById('mes'),
+                    document.getElementById('hora_inicio'),
+                    document.getElementById('hora_final')
+                ];
+
+                const diasMarcados = document.querySelectorAll('input[name="dias"]:checked');
+                const todosLlenos = campos.every(campo => campo && campo.value.trim() !== '') && diasMarcados.length > 0;
+
+                const boton = document.getElementById('verificar-fechas');
+                if (todosLlenos) {
+                    boton.disabled = false;
+                    boton.style.backgroundColor = "#ff692e";
+                    boton.style.color = "#000";
+                    boton.style.border = "1px solid #000";
+                    boton.style.cursor = "pointer";
+                    } else {
+                    boton.disabled = true;
+                    boton.style.backgroundColor = "#ccc";
+                    boton.style.color = "#666";
+                    boton.style.border = "1px solid #aaa";
+                    boton.style.cursor = "not-allowed";
+                }
+            }
+
+            // Escuchar cambios en todos los campos relevantes
+            ['evento', 'sala', 'mes', 'hora_inicio', 'hora_final'].forEach(id => {
+            const el = document.getElementById(id);
+                if (el) el.addEventListener('input', validarFormulario);
+            });
+
+            document.querySelectorAll('input[name="dias"]').forEach(cb => {
+                cb.addEventListener('change', validarFormulario);
+            });
+
+            validarFormulario();  // Llamado inicial por si hay valores precargados
+
+            // Validar si hay al menos 2 fechas marcadas en el modal
+            function validarFechasSeleccionadasEnModal() {
+                const seleccionadas = document.querySelectorAll('#form-dinamico input[type="checkbox"]:checked');
+                const botonConfirmar = document.getElementById("confirmar-reservas");
+
+                if (seleccionadas.length >= 2) {
+                    botonConfirmar.disabled = false;
+                    botonConfirmar.style.backgroundColor = "#00adb5";
+                    botonConfirmar.style.cursor = "pointer";
+                } else {
+                    botonConfirmar.disabled = true;
+                    botonConfirmar.style.backgroundColor = "#ccc";
+                    botonConfirmar.style.cursor = "not-allowed";
+                }
+            }
+        });
+    </script>
+
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-image: url("{% static 'img/FondoWindow1.jpg' %}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .LoginContainer {
+            width: 510px;
+            max-width: 90%;
+            min-height: 645px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-image: url("{% static 'img/footer.jpg' %}");
+            filter: sepia(0.5) saturate(1.5) hue-rotate(340deg);
+            background-size: 399px 60px;
+            background-repeat: repeat-x;
+            background-position: bottom;
+            padding: 20px;
+            box-sizing: border-box;
+            justify-content: flex-start;
+        }
+
+        .Logos {
+            display: flex;
+            gap: 70px;
+            margin-bottom: 20px;
+        }
+
+        .logo-1,
+        .logo-2 {
+            height: 40px;
+        }
+
+        .info-container {
+            display: flex;
+            width: 100%;
+            gap: 250px;
+        }
+
+        .home-link {
+            text-decoration: none;
+            color: #000;
+        }
+
+        .info-container p {
+            margin: 0;
+        }
+        .footer-logi {
+            margin-top: 15px; /* Empuja el contenido hacia abajo */
+            text-align: center; /* Centra el texto */
+            padding-bottom: 20px;
+            margin-left: 30px;
+        }
+    </style> 
+</body>
+</html>

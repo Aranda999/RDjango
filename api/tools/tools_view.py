@@ -86,7 +86,7 @@ def graficos(request):
             plt.xlabel("Usuario", fontsize=18)
             plt.ylabel("Número de Reservaciones", fontsize=16)
             plt.title("Total de Reservaciones por Usuario", fontsize=18)
-            plt.xticks(rotation=45, ha="right", fontsize=20)
+            plt.xticks(rotation=45, ha="right", fontsize=19)
             plt.yticks(fontsize=18)
             plt.tight_layout()
             buffer_usuario = io.BytesIO()
@@ -111,7 +111,7 @@ def graficos(request):
             plt.title("Reservaciones por Sala de Juntas (Total)", fontsize=23)
             plt.xlabel("Sala",fontsize=20 )
             plt.ylabel("Reservaciones", fontsize=21)
-            plt.xticks(rotation=45, fontsize=20)
+            plt.xticks(rotation=45, fontsize=25)
             plt.tight_layout()
 
             buffer_sala_total = io.BytesIO()

@@ -39,6 +39,8 @@ from api.security.security_view import Password
 from api.security.security_view import reset_password
 from api.video.video_view import camera_view
 from api.controller.control_view import administracion
+from api.controller.control_view import Periodicamente
+from api.controller.control_view import validar_periodicas
 from django.contrib.auth.decorators import login_required 
 
 admin.site.login_url = reverse_lazy('login')
@@ -63,8 +65,11 @@ urlpatterns = [
     path('enviar_notificacion/', enviar_notificacion, name='enviar_notificacion'),
     path('camera/', camera_view, name='camera_view'),
     path('administracion/', administracion, name='administracion'),
+    path('periodica/', Periodicamente, name='periodica'),
     path('eliminar_reservacion/<int:pk>/', eliminar_reservacion, name='eliminar_reservacion'),
     path('descargar-reporte-pdf/', descargar_reporte_pdf, name='descargar_reporte_pdf'),
+    path('validar-periodicas/', validar_periodicas, name='validar_periodicas'),
+
 
 ]
 

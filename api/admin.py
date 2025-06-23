@@ -1,5 +1,7 @@
 from django.contrib import admin
 from .models import Area, Empleado, SalaJuntas, Invitado, Reservacion, ReservacionInvitado
+from django.contrib.admin import AdminSite
+
 
 # Personalizando la vista de administración para el modelo Area
 @admin.register(Area)
