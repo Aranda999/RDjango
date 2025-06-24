@@ -40,7 +40,9 @@ from api.security.security_view import reset_password
 from api.video.video_view import camera_view
 from api.controller.control_view import administracion
 from api.controller.control_view import Periodicamente
-from api.controller.control_view import validar_periodicas
+from api.controller.control_view import ValidadrFechas
+from api.controller.control_view import monitor_sala
+from api.controller.control_view import api_reservaciones_sala
 from django.contrib.auth.decorators import login_required 
 
 admin.site.login_url = reverse_lazy('login')
@@ -68,9 +70,9 @@ urlpatterns = [
     path('periodica/', Periodicamente, name='periodica'),
     path('eliminar_reservacion/<int:pk>/', eliminar_reservacion, name='eliminar_reservacion'),
     path('descargar-reporte-pdf/', descargar_reporte_pdf, name='descargar_reporte_pdf'),
-    path('validar-periodicas/', validar_periodicas, name='validar_periodicas'),
-
-
+    path('validar-periodicas/', ValidadrFechas, name='validar_periodicas'),
+    path('monitor/sala/mes/<str:nombre_sala>/', monitor_sala, name='monitor_sala'),
+    path('api/reservaciones/mes/<str:nombre_sala>/', api_reservaciones_sala, name='api_reservaciones_sala'),
 ]
 
 

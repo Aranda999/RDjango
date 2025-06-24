@@ -20,7 +20,7 @@ class AutoLogoutMiddleware(MiddlewareMixin):
             last_activity_time = datetime.datetime.strptime(last_activity, '%Y-%m-%d %H:%M:%S')
             time_diff = now - last_activity_time
 
-            if time_diff.total_seconds() > 300:
+            if time_diff.total_seconds() > 3000:
                 logout(request)
                 messages.error(request, "Se cerro tu sesion por inactividad.")
                 return redirect('login')

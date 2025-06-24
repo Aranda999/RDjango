@@ -423,11 +423,16 @@
             $('#fechaReservacion').on('change', function () {
                 var fecha = $(this).val();
                 if (fecha === '') {
-                    $('#horarios-ocupados').html(''); // Limpiar horarios ocupados
+                    $('#horarios-ocupados').html('');
                     return;
                 }
-                var diaSemana = new Date(fecha).getDay();
-                if (diaSemana === 5 || diaSemana === 6) {
+
+                // Construcción segura de fecha
+                var partes = fecha.split('-'); // formato: yyyy-mm-dd
+                var fechaObj = new Date(partes[0], partes[1] - 1, partes[2]);
+                var diaSemana = fechaObj.getDay(); // 0 = domingo, 6 = sábado
+
+                if (diaSemana === 6 || diaSemana === 0) {
                     if (aplicarRestricciones) {
                         mostrarError('Las reservaciones son de lunes a viernes');
                         $(this).val('');
@@ -436,15 +441,14 @@
                         getHorariosOcupados();
                     }
                 } else {
-                    var fechaSeleccionada = new Date(fecha);
                     var fechaActual = new Date();
-                    var diferenciaDias = calcularDiferenciaDias(fechaSeleccionada, fechaActual);
+                    var diferenciaDias = calcularDiferenciaDias(fechaObj, fechaActual);
                     if (aplicarRestricciones) {
                         if (diferenciaDias <= 0) {
-                            mostrarError('La Fecha seleccionada no esta permitida');
+                            mostrarError('La Fecha seleccionada no está permitida');
                             $(this).val('');
                         } else if (diferenciaDias > 7) {
-                            mostrarError('Maximo 8 dias de anticipación');
+                            mostrarError('Máximo 8 días de anticipación');
                             $(this).val('');
                         } else {
                             ocultarError();

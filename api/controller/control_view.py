@@ -77,14 +77,19 @@ def administracion(request):
 
 
 
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.core.mail import EmailMessage
+from django.contrib.auth.decorators import login_required
+from datetime import datetime
+from api.isc import generar_ics
 
 @login_required
 def Periodicamente(request):
     salas = SalaJuntas.objects.all()
 
     if request.method == 'POST':
-        # Traer datos confirmados desde el formulario
-        fechas_str = request.POST.getlist('fechas_validas[]')  # ← de JS
+        fechas_str = request.POST.getlist('fechas_validas[]')
         if not fechas_str:
             messages.error(request, "No se seleccionó ninguna fecha válida.")
             return redirect('periodica')
@@ -97,6 +102,7 @@ def Periodicamente(request):
 
         fechas = [datetime.strptime(f, "%Y-%m-%d").date() for f in fechas_str]
 
+        # Guardar reservaciones
         reservas = [
             Reservacion(
                 evento=evento,
@@ -109,9 +115,36 @@ def Periodicamente(request):
             )
             for f in fechas
         ]
-
         Reservacion.objects.bulk_create(reservas)
-        messages.success(request, f"Se crearon {len(reservas)} reservaciones exitosamente.")
+
+        # Generar archivo ICS con evento recurrente
+        archivo_ics = generar_ics(
+            evento=evento,
+            sala=sala.nombre,
+            comentarios=comentarios,
+            fechas=fechas,
+            hora_inicio=hora_inicio,
+            hora_fin=hora_final,
+            organizador_email=request.user.email
+        )
+
+        # Enviar correo al organizador (por ahora solo a él)
+        email = EmailMessage(
+            subject=f"Reservación confirmada: {evento}",
+            body="Adjunto encontrarás el evento para añadirlo a tu calendario.",
+            from_email="eliasaranda828@gmail.com",
+            to=["eliasaranda828@gmail.com"]
+
+        )
+
+        if archivo_ics:
+            email.attach("evento_reservado.ics", archivo_ics.read(), "text/calendar")
+            print("Adjuntando archivo:", archivo_ics is not None)
+            print("Enviando a:", email.to)
+
+        email.send()
+
+        messages.success(request, f"Se crearon {len(reservas)} reservaciones exitosamente y se envió el evento al calendario.")
         return redirect('periodica')
 
     return render(request, "reservation_periodica.html", {"salas": salas})
@@ -119,7 +152,7 @@ def Periodicamente(request):
 
 
 @require_POST
-def validar_periodicas(request):
+def ValidadrFechas(request):
     evento = request.POST.get('evento')
     sala_id = request.POST.get('sala')
     mes_nombre = request.POST.get('mes')
@@ -145,11 +178,14 @@ def validar_periodicas(request):
     }
 
     fechas = []
+    hoy = date.today()
     for semana in calendar.monthcalendar(año, mes):
         for dia in dias:
             idx = dias_map[dia.lower()]
             if semana[idx] != 0:
-                fechas.append(date(año, mes, semana[idx]))
+                posible_fecha = date(año, mes, semana[idx])
+                if posible_fecha >= hoy:
+                    fechas.append(posible_fecha)
 
     hora_inicio = datetime.strptime(h_inicio, "%H:%M").time()
     hora_final = datetime.strptime(h_final, "%H:%M").time()
@@ -182,3 +218,61 @@ def validar_periodicas(request):
         'disponibles': disponibles,
         'conflictos': conflictos
     })
+
+
+from datetime import timedelta
+from django.shortcuts import render, get_object_or_404
+from django.utils import timezone
+
+def monitor_sala(request, nombre_sala):
+    sala = get_object_or_404(SalaJuntas, nombre=nombre_sala)
+
+    hoy = timezone.now().date()
+    primer_dia_mes = hoy.replace(day=1)
+    ultimo_dia_mes = primer_dia_mes.replace(day=calendar.monthrange(hoy.year, hoy.month)[1])
+
+    # Crear lista con todos los días del mes
+    dias_mes = [primer_dia_mes + timedelta(days=i) for i in range((ultimo_dia_mes - primer_dia_mes).days + 1)]
+
+    return render(request, 'calendario_cl.html', {
+        'sala': sala,
+        'dias_mes': dias_mes,
+        'primer_dia_mes': primer_dia_mes,
+        'ultimo_dia_mes': ultimo_dia_mes,
+    })
+from django.http import JsonResponse
+
+def api_reservaciones_sala(request, nombre_sala):
+    sala = SalaJuntas.objects.get(nombre=nombre_sala)
+
+    primer_dia_mes = request.GET.get('inicio')
+    ultimo_dia_mes = request.GET.get('fin')
+
+    from datetime import datetime
+    formato_fecha = '%Y-%m-%d'
+
+    try:
+        inicio = datetime.strptime(primer_dia_mes, formato_fecha).date()
+        fin = datetime.strptime(ultimo_dia_mes, formato_fecha).date()
+    except Exception:
+        hoy = timezone.now().date()
+        inicio = hoy.replace(day=1)
+        fin = inicio.replace(day=calendar.monthrange(inicio.year, inicio.month)[1])
+
+    reservaciones = Reservacion.objects.filter(
+        sala=sala,
+        fecha__range=(inicio, fin)
+    ).order_by('fecha', 'hora_inicio')
+
+    data = []
+    for r in reservaciones:
+        duracion_minutos = (datetime.combine(r.fecha, r.hora_final) - datetime.combine(r.fecha, r.hora_inicio)).seconds // 60
+        data.append({
+            'evento': r.evento,
+            'fecha': r.fecha.strftime('%Y-%m-%d'),
+            'inicio': r.hora_inicio.strftime('%H:%M'),
+            'final': r.hora_final.strftime('%H:%M'),
+            'duracion': duracion_minutos
+        })
+
+    return JsonResponse({'reservaciones': data})
