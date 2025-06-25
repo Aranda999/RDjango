@@ -23,6 +23,7 @@
             <img src="{% static 'img/IconCdmx.png' %}" alt="Logo 1" class="logo-1">
             <img src="{% static 'img/IconMetro.webp' %}" alt="Logo 2" class="logo-2">
         </div>
+        <a href="{% url 'monitor_sala' sala.nombre %}">Ver calendario de {{ sala.nombre }}</a>
         <div class="reservas-container">
             {% for semana in datos %}
                 <div class="semana">

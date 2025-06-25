@@ -57,7 +57,7 @@
         </div>
 
         <div class="usuario-container">
-            <p>Usuario: {{ request.user.username }}</p>
+            <a href="{% url 'periodica' %}" style="color: #000;">Reservación Periodica</a>
         </div>
         <div class="enlaces-container">
             <a href="{% if request.user.is_superuser %}{% url 'home' %}{% else %}{% url 'homeuser' %}{% endif %}" class="home-link">
@@ -423,16 +423,11 @@
             $('#fechaReservacion').on('change', function () {
                 var fecha = $(this).val();
                 if (fecha === '') {
-                    $('#horarios-ocupados').html('');
+                    $('#horarios-ocupados').html(''); // Limpiar horarios ocupados
                     return;
                 }
-
-                // Construcción segura de fecha
-                var partes = fecha.split('-'); // formato: yyyy-mm-dd
-                var fechaObj = new Date(partes[0], partes[1] - 1, partes[2]);
-                var diaSemana = fechaObj.getDay(); // 0 = domingo, 6 = sábado
-
-                if (diaSemana === 6 || diaSemana === 0) {
+                var diaSemana = new Date(fecha).getDay();
+                if (diaSemana === 5 || diaSemana === 6) {
                     if (aplicarRestricciones) {
                         mostrarError('Las reservaciones son de lunes a viernes');
                         $(this).val('');
@@ -441,14 +436,15 @@
                         getHorariosOcupados();
                     }
                 } else {
+                    var fechaSeleccionada = new Date(fecha);
                     var fechaActual = new Date();
-                    var diferenciaDias = calcularDiferenciaDias(fechaObj, fechaActual);
+                    var diferenciaDias = calcularDiferenciaDias(fechaSeleccionada, fechaActual);
                     if (aplicarRestricciones) {
                         if (diferenciaDias <= 0) {
-                            mostrarError('La Fecha seleccionada no está permitida');
+                            mostrarError('La Fecha seleccionada no esta permitida');
                             $(this).val('');
                         } else if (diferenciaDias > 7) {
-                            mostrarError('Máximo 8 días de anticipación');
+                            mostrarError('Maximo 8 dias de anticipación');
                             $(this).val('');
                         } else {
                             ocultarError();
@@ -460,6 +456,48 @@
                     }
                 }
             });
+
+
+            // $('#fechaReservacion').on('change', function () {
+            //     var fecha = $(this).val();
+            //     if (fecha === '') {
+            //         $('#horarios-ocupados').html('');
+            //         return;
+            //     }
+
+            //     // Construcción segura de fecha
+            //     var partes = fecha.split('-'); // formato: yyyy-mm-dd
+            //     var fechaObj = new Date(partes[0], partes[1] - 1, partes[2]);
+            //     var diaSemana = fechaObj.getDay(); // 0 = domingo, 6 = sábado
+
+            //     if (diaSemana === 6 || diaSemana === 0) {
+            //         if (aplicarRestricciones) {
+            //             mostrarError('Las reservaciones son de lunes a viernes');
+            //             $(this).val('');
+            //         } else {
+            //             ocultarError();
+            //             getHorariosOcupados();
+            //         }
+            //     } else {
+            //         var fechaActual = new Date();
+            //         var diferenciaDias = calcularDiferenciaDias(fechaObj, fechaActual);
+            //         if (aplicarRestricciones) {
+            //             if (diferenciaDias <= 0) {
+            //                 mostrarError('La Fecha seleccionada no está permitida');
+            //                 $(this).val('');
+            //             } else if (diferenciaDias > 7) {
+            //                 mostrarError('Máximo 8 días de anticipación');
+            //                 $(this).val('');
+            //             } else {
+            //                 ocultarError();
+            //                 getHorariosOcupados();
+            //             }
+            //         } else {
+            //             ocultarError();
+            //             getHorariosOcupados();
+            //         }
+            //     }
+            // });
 
             $('#salaJuntas').on('change', function () {
                 ocultarError();
@@ -628,7 +666,7 @@
         top: 80px;
         right: 210px;
         font-size: 1.8rem;
-        color: rgb(27, 218, 2);
+        color: rgb(44, 44, 44);
         z-index: 10;
         text-decoration: none;
         transition: color 0.3s ease;

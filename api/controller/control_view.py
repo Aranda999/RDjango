@@ -9,6 +9,13 @@ from django.utils import timezone
 import calendar
 from django.contrib import messages
 from django.views.decorators.http import require_POST
+from django.contrib import messages
+from django.core.mail import EmailMessage
+from django.contrib.auth.decorators import login_required
+from datetime import datetime
+from api.isc import generar_ics
+
+
 
 
 def administracion(request):
@@ -77,15 +84,10 @@ def administracion(request):
 
 
 
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.core.mail import EmailMessage
-from django.contrib.auth.decorators import login_required
-from datetime import datetime
-from api.isc import generar_ics
 
 @login_required
 def Periodicamente(request):
+    areas = Area.objects.prefetch_related('invitados').all()
     salas = SalaJuntas.objects.all()
 
     if request.method == 'POST':
@@ -128,13 +130,16 @@ def Periodicamente(request):
             organizador_email=request.user.email
         )
 
+        ids_invitados = request.POST.getlist('destinatarios[]')
+        destinatarios = Invitado.objects.filter(id_invitado__in=ids_invitados)
+        correos = [i.correo for i in destinatarios]
+
         # Enviar correo al organizador (por ahora solo a él)
         email = EmailMessage(
             subject=f"Reservación confirmada: {evento}",
             body="Adjunto encontrarás el evento para añadirlo a tu calendario.",
             from_email="eliasaranda828@gmail.com",
-            to=["eliasaranda828@gmail.com"]
-
+            to=correos
         )
 
         if archivo_ics:
@@ -146,8 +151,8 @@ def Periodicamente(request):
 
         messages.success(request, f"Se crearon {len(reservas)} reservaciones exitosamente y se envió el evento al calendario.")
         return redirect('periodica')
-
-    return render(request, "reservation_periodica.html", {"salas": salas})
+    
+    return render(request, "reservation_periodica.html", {"salas": salas, "areas": areas})
 
 
 
@@ -220,9 +225,7 @@ def ValidadrFechas(request):
     })
 
 
-from datetime import timedelta
-from django.shortcuts import render, get_object_or_404
-from django.utils import timezone
+
 
 def monitor_sala(request, nombre_sala):
     sala = get_object_or_404(SalaJuntas, nombre=nombre_sala)
