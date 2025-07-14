@@ -100,22 +100,21 @@
         color: black;
         }
 
-         /* Media query para dispositivos móviles */
         @media (max-width: 768px) {
-        .login-container {
-            width: 90%; /* Ancho del contenedor en dispositivos móviles */
-            margin: 20px auto; /* Margen superior e inferior en dispositivos móviles */
-        }
+            .login-container {
+                width: 90%; 
+                margin: 20px auto; 
+            }
         }
         @media (max-width: 768px) {
-        .logo {
-        width: 30%; /* ajusta el ancho según sea necesario */
-        }
+            .logo {
+            width: 30%; 
+            }
         }
     </style>
 
     <script>
-        /* Codigo para la visibilidad de contraseña, ver y ocultar por medio del icono */
+        /* ICONO PARA VER CONTRASEÑA */
         document.getElementById('togglePassword').addEventListener('click', function() {
             var passwordInput = document.getElementById('floatingPassword');
             var eyeIcon = this.querySelector('i');

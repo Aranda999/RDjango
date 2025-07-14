@@ -3,39 +3,34 @@ from .models import Area, Empleado, SalaJuntas, Invitado, Reservacion, Reservaci
 from django.contrib.admin import AdminSite
 
 
-# Personalizando la vista de administración para el modelo Area
 @admin.register(Area)
 class AreaAdmin(admin.ModelAdmin):
-    list_display = ('id_area', 'nombre')  # Qué campos mostrar en la lista
-    search_fields = ('id_area', 'nombre')  # Permite buscar por ID de área o nombre
-    list_filter = ('nombre',)  # Filtros en la barra lateral
-    ordering = ('nombre',)  # Orden de los registros en la vista de lista
+    list_display = ('id_area', 'nombre')  
+    search_fields = ('id_area', 'nombre')  
+    list_filter = ('nombre',)  
+    ordering = ('nombre',)  
 
-# Personalizando la vista de administración para el modelo Empleado
 @admin.register(Empleado)
 class EmpleadoAdmin(admin.ModelAdmin):
     list_display = ('empleado_id', 'nombre', 'apellido_paterno', 'numero_empleado', 'id_area')
     search_fields = ('nombre', 'apellido_paterno', 'numero_empleado')
-    list_filter = ('id_area',)  # Filtrar por área
-    ordering = ('apellido_paterno', 'apellido_materno')  # Ordenar por apellido
+    list_filter = ('id_area',)  
+    ordering = ('apellido_paterno', 'apellido_materno')  
 
-# Personalizando la vista de administración para el modelo SalaJuntas
 @admin.register(SalaJuntas)
 class SalaJuntasAdmin(admin.ModelAdmin):
     list_display = ('id_sala', 'nombre', 'capacidad')
     search_fields = ('nombre',)
-    list_filter = ('capacidad',)  # Filtrar por capacidad
+    list_filter = ('capacidad',)  
     ordering = ('nombre',)
 
-# Personalizando la vista de administración para el modelo Invitado
 @admin.register(Invitado)
 class InvitadoAdmin(admin.ModelAdmin):
     list_display = ('id_invitado', 'nombre_completo', 'correo', 'id_area')
     search_fields = ('nombre_completo', 'correo')
-    list_filter = ('id_area',)  # Filtrar por área
+    list_filter = ('id_area',)  
     ordering = ('nombre_completo',)
 
-# Personalizando la vista de administración para el modelo Reservacion
 class ReservacionInvitadoInline(admin.TabularInline):
     model = ReservacionInvitado
     extra = 1
@@ -47,7 +42,6 @@ class ReservacionAdmin(admin.ModelAdmin):
     list_filter = ('fecha', 'sala','usuario')
     inlines = [ReservacionInvitadoInline]
 
-# Personalizando la vista de administración para el modelo ReservacionInvitado
 @admin.register(ReservacionInvitado)
 class ReservacionInvitadoAdmin(admin.ModelAdmin):
     list_display = ('reservacion', 'invitado')

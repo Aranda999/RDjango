@@ -19,28 +19,22 @@ def HomeUser(request):
         nueva_contrasena = request.POST.get('nuevaContrasena')
         confirmar_contrasena = request.POST.get('confirmarContrasena')
 
-        # Verificar si las contraseñas coinciden
         if nueva_contrasena != confirmar_contrasena:
-            # Mensaje de error que se mostrará en el modal
             messages.error(request, "Las contraseñas no coinciden.")
-            return render(request, 'home-user.html')  # Mantener el modal abierto
+            return render(request, 'home-user.html')  
 
-        # Si las contraseñas coinciden, cambiar la contraseña del usuario
+        # guardar nueva contraseña
         user = request.user
         user.set_password(nueva_contrasena)
         user.save()
 
-        # Actualizar la sesión para que no se cierre después de cambiar la contraseña
         update_session_auth_hash(request, user)
 
-        # Cerrar sesión del usuario
+        # cerrar sesion
         logout(request)
 
-        # Mensaje de éxito y redirigir al login
         messages.success(request, "Contraseña cambiada. Por favor, vuelve a iniciar sesión.")
-        return redirect('login')  # Redirige al login después de cerrar sesión
-
-    # Si no es un POST, solo se muestra el formulario
+        return redirect('login') 
     return render(request, 'home-user.html')
 
 def Password(request):
@@ -48,18 +42,17 @@ def Password(request):
     if request.method == 'POST':
         email = request.POST['email']
         try:
-            # Busca el usuario que tenga asociado el email ingresado
+            # busqueda de usuario por email
             user = User.objects.get(email=email)
-            
-            # Generar el uid token y se importa la libreria hasta arriba
+            # generacion del token
             uid = urlsafe_base64_encode(str(user.pk).encode())
             token = PasswordResetTokenGenerator().make_token(user)
 
-            # Enlace para restablecer y obtiene el domino actual el localhost
+            # enlace 
             domain = request.get_host()  
             reset_url = f"http://{domain}/reset-password/{uid}/{token}/"
 
-            # Mensaje del correo que se encuentra en el html correspondiente 
+            # html que contiene el mensaje para enviar
             subject = "Restablece tu contraseña"
             message = render_to_string('password_reset_email.html', {
                 'user': user,
@@ -75,7 +68,7 @@ def Password(request):
                 html_message=message,
             )
 
-            # Mensajes sea la situacion que sea
+            # manejo de mensaje
             return render(request, template_name, {'mensaje': 'Correo enviado con éxito'})
         
         except User.DoesNotExist:
@@ -86,19 +79,18 @@ def Password(request):
 
 def reset_password(request, uidb64, token):
     try:
-        # Decodificar el UID del usuario
+        # Busca al usuario
         uid = urlsafe_base64_decode(uidb64).decode()
         user = User.objects.get(pk=uid)
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         user = None
 
+        # Sentencia de control para validar 
     if user is not None and PasswordResetTokenGenerator().check_token(user, token):
-        # Si el token es válido, loguear al usuario directamente 
         login(request, user)  
-        # Redirigir al homeuser
         return redirect('homeuser') 
     else:
-        # Agregar mensaje de error a la sesión y redirigir a la página de login
+        # Manejo de mensaje al usuario
         error_message = mark_safe('El enlace es inválido o ya ha expirado.<br> Por favor, solicita un nuevo enlace.')
         messages.error(request, error_message) 
         return redirect('login') 

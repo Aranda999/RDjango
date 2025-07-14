@@ -38,8 +38,9 @@ from textwrap import wrap
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 
-# Tu función graficos existente
+# vista para graficas
 def graficos(request):
+    # Filtros que se pueden usar
     mes = request.GET.get('mes')
     semana = request.GET.get('semana')
     ano = request.GET.get('ano')
@@ -47,9 +48,9 @@ def graficos(request):
     reservaciones = Reservacion.objects.all()
     filtros_seleccionados = False
 
+    # Filtros de las fechas
     if mes and ano:
         if semana:
-            # Filtro por semana (tu lógica existente)
             first_day = date(int(ano), int(mes), 1)
             first_day_weekday = first_day.weekday() 
             first_monday_of_month_week = first_day - timedelta(days=first_day.weekday())
@@ -59,27 +60,27 @@ def graficos(request):
 
             reservaciones = reservaciones.filter(fecha__range=[start_date, end_date])
         else:
-            # Filtro por mes (tu lógica existente)
+            # Filtro por mes 
             reservaciones = reservaciones.filter(fecha__month=mes, fecha__year=ano)
         filtros_seleccionados = True
 
     context = {
-        'anos': range(datetime.now().year , datetime.now().year + 5), # Rango de años más dinámico
+        # Rango de años que se le pueden agregar
+        'anos': range(datetime.now().year , datetime.now().year + 5), 
         'imagen_usuario': None,
         'imagen_sala_total': None,
         'graficos_por_sala': None,
     }
 
-    if filtros_seleccionados:
-        # --- Generación de gráficos (tu código existente, asegúrate de que se ejecute si hay datos) ---
-        
-        # Gráfico 1: Reservaciones por usuario
+    # Condicional general si es que hay filtros seleccionados
+    if filtros_seleccionados:        
+        # Primer Grafico
         reservaciones_por_usuario = reservaciones.values('usuario__username').annotate(total_reservaciones=Count('id_reservacion')).order_by('-total_reservaciones')
         if reservaciones_por_usuario: # Solo genera si hay datos
             usuarios = [item['usuario__username'] for item in reservaciones_por_usuario]
             cantidad_reservaciones_usuario = [item['total_reservaciones'] for item in reservaciones_por_usuario]
             df = pd.DataFrame({'usuario': usuarios, 'cantidad': cantidad_reservaciones_usuario})
-            
+            # Diseño de los datos mostrados 
             plt.figure(figsize=(11, 7))
             colors = sns.color_palette("viridis", len(df))
             sns.barplot(x='usuario', y='cantidad', data=df, palette=colors)
@@ -92,12 +93,13 @@ def graficos(request):
             buffer_usuario = io.BytesIO()
             plt.savefig(buffer_usuario, format='png')
             buffer_usuario.seek(0)
+            # Formato del grafico
             context['imagen_usuario'] = base64.b64encode(buffer_usuario.read()).decode('utf-8')
             plt.close()
 
-        # Gráfico 2: Reservaciones por sala de juntas (en total)
+        # Segundo grafico
         reservaciones_por_sala_total = reservaciones.values('sala__nombre').annotate(total_reservaciones=Count('id_reservacion')).order_by('-total_reservaciones')
-        if reservaciones_por_sala_total:  # Solo genera si hay datos
+        if reservaciones_por_sala_total:  
             salas = [item['sala__nombre'] for item in reservaciones_por_sala_total]
             cantidad_reservaciones_sala = [item['total_reservaciones'] for item in reservaciones_por_sala_total]
             
@@ -120,12 +122,13 @@ def graficos(request):
             context['imagen_sala_total'] = base64.b64encode(buffer_sala_total.read()).decode('utf-8')
             plt.close()
 
-        # Gráfico 3: Reservaciones por sala de juntas (separado)
+        # Tercer Grafico 
         graficos_por_sala_dict = {}
         salas_juntas = SalaJuntas.objects.all()
         for sala in salas_juntas:
-            reservas_sala = reservaciones.filter(sala=sala).values('usuario__username').annotate(total_reservaciones=Count('id_reservacion')).order_by('-total_reservaciones')
-            if reservas_sala: # Solo genera si hay datos para esta sala
+            reservas_sala = reservaciones.filter(sala=sala).values('usuario__username').annotate(total_reservaciones=Count
+            ('id_reservacion')).order_by('-total_reservaciones')
+            if reservas_sala: 
                 usuarios_sala = [item['usuario__username'] for item in reservas_sala]
                 cantidad_reservaciones_sala_usuario = [item['total_reservaciones'] for item in reservas_sala]
                 df_sala = pd.DataFrame({'usuario': usuarios_sala, 'cantidad': cantidad_reservaciones_sala_usuario})
@@ -146,7 +149,7 @@ def graficos(request):
                 plt.close()
                 graficos_por_sala_dict[sala.nombre] = imagen_sala_individual_base64
         
-        if graficos_por_sala_dict: # Solo agrega al contexto si hay gráficos generados
+        if graficos_por_sala_dict: 
             context['graficos_por_sala'] = graficos_por_sala_dict
 
     return render(request, 'graficos.html', context)
@@ -157,13 +160,13 @@ def generar_pagina_resumen(base_page, titulo, resumen_texto):
     temp = BytesIO()
     can = canvas.Canvas(temp, pagesize=letter)
 
-    # 🏷️ Título en la parte superior
+    # Título
     can.setFont("Helvetica-Bold", 16)
-    can.drawCentredString(300, 695, titulo)  # Ubicación del título (más arriba de lo que estaba antes)
+    can.drawCentredString(300, 695, titulo)  
 
-    # 📝 Resumen debajo del título
+    # Resumen debajo 
     text = can.beginText()
-    text.setTextOrigin(70, 672)  # Más cerca del título
+    text.setTextOrigin(70, 672) 
     text.setFont("Helvetica", 12)
     for linea in wrap(resumen_texto, width=95):
         text.textLine(linea)
@@ -175,7 +178,7 @@ def generar_pagina_resumen(base_page, titulo, resumen_texto):
     hoja.merge_page(texto)
     return hoja
 
-
+# Vista que permite descargar las graficas en PDF
 def descargar_reporte_pdf(request):
     if request.method != 'POST':
         return HttpResponse("Método no permitido", status=405)
@@ -235,7 +238,7 @@ def descargar_reporte_pdf(request):
             })
             plt.figure(figsize=(10, 6))
             sns.barplot(x='sala', y='cantidad', data=df, palette='crest', hue='sala', legend=False)
-            plt.xlabel('Sala', fontsize=17)  # Cambia el tamaño de la etiqueta del eje X (sala)
+            plt.xlabel('Sala', fontsize=17)  
             plt.ylabel('Cantidad', fontsize=17)
             plt.xticks(rotation=0, fontsize=16)
             plt.tight_layout()
@@ -255,7 +258,7 @@ def descargar_reporte_pdf(request):
                 })
                 plt.figure(figsize=(11, 7))
                 sns.barplot(x='usuario', y='cantidad', data=df, palette='mako', hue='usuario', legend=False)
-                plt.xlabel('Usuario', fontsize=18)  # Cambia el tamaño de la etiqueta del eje X (sala)
+                plt.xlabel('Usuario', fontsize=18)  
                 plt.ylabel('Cantidad', fontsize=18)
                 plt.xticks(rotation=0, fontsize=14)
                 plt.tight_layout()
@@ -281,7 +284,7 @@ def descargar_reporte_pdf(request):
         iw = min(iw, 410)
         ih = iw * (img.getSize()[1] / img.getSize()[0])
         x = (letter[0] - iw) / 2
-        y = y_offset  # Ubicación ajustada para mover las imágenes hacia abajo
+        y = y_offset  
 
         can.setFont("Helvetica-Bold", 12)
         can.drawCentredString(letter[0] / 2, y + ih + 15, titulo)
@@ -290,7 +293,7 @@ def descargar_reporte_pdf(request):
         return PdfReader(BytesIO(temp.getvalue())).pages[0]
 
 
-# Generar la primera página con título y resumen
+    #primera página con título y resumen
     resumen_texto = (
         f"Rango de fechas: {fecha_rango}    "
         f"Total de reservaciones: {reservaciones.count()}    "
@@ -298,7 +301,7 @@ def descargar_reporte_pdf(request):
     )
     primera_pagina_base = generar_pagina_resumen(base_page, "Reporte de Reservaciones", resumen_texto)
 
-    # Ahora, añadimos las gráficas debajo del resumen (y más abajo que antes)
+    # gGraficos despues de resumen
     i = 0
     while i < len(graficos_buffers):
         buf1, tit1 = graficos_buffers[i]
@@ -317,14 +320,14 @@ def descargar_reporte_pdf(request):
 
             if total_alto <= 700:
                 capa = deepcopy(primera_pagina_base if usar_primera else base_page)
-                capa.merge_page(render_img_layer(buf1, tit1, y_offset=380))  # Ajustar la posición de las imágenes
+                capa.merge_page(render_img_layer(buf1, tit1, y_offset=380))  
                 capa.merge_page(render_img_layer(buf2, tit2, y_offset=100))
                 writer.add_page(capa)
                 i += 2
                 continue
 
         capa = deepcopy(primera_pagina_base if usar_primera else base_page)
-        capa.merge_page(render_img_layer(buf1, tit1, y_offset=390))  # Ajuste del primer gráfico
+        capa.merge_page(render_img_layer(buf1, tit1, y_offset=390))  
         writer.add_page(capa)
         i += 1
 
@@ -344,7 +347,7 @@ def editar_reservacion(request, pk):
         try:
             reservacion = get_object_or_404(Reservacion, id_reservacion=pk)
 
-            # Obtener datos enviados y conservar los originales si están vacíos
+            # llenar los campos vacios
             nombre_anterior = reservacion.evento
             reservacion.evento = request.POST.get('evento_editar', reservacion.evento)
             reservacion.comentarios = request.POST.get('comentarios_editar', reservacion.comentarios)
@@ -352,10 +355,9 @@ def editar_reservacion(request, pk):
             reservacion.fecha = request.POST.get('fechaReservacion_editar') or reservacion.fecha
             reservacion.hora_inicio = request.POST.get('horaInicio_editar') or reservacion.hora_inicio
             reservacion.hora_final = request.POST.get('horaFinal_editar') or reservacion.hora_final
-            
             reservacion.save()
 
-            # Procesar invitados seleccionados
+            # invitados seleccionados
             invitados_seleccionados = request.POST.getlist('invitados[]')
             if not invitados_seleccionados:
                 invitados_seleccionados = request.POST.get('invitados')
@@ -370,7 +372,7 @@ def editar_reservacion(request, pk):
                 for invitado_id in invitados_seleccionados:
                     ReservacionInvitado.objects.create(reservacion=reservacion, invitado_id=invitado_id)
 
-            # Enviar correo electrónico a los invitados
+            # Enviar correo
             if invitados_seleccionados:
                 invitados = Invitado.objects.filter(id_invitado__in=invitados_seleccionados)
                 reservas_url = request.build_absolute_uri(reverse('reservas_semanales'))
@@ -380,7 +382,8 @@ def editar_reservacion(request, pk):
                         message = f"""
                             <h2>📅 Actualización de Reservación</h2>
                             <p>Estimado/a {invitado.nombre_completo},</p>
-                            <p>La reservación <strong>{nombre_anterior}</strong> ha sido actualizada a <strong>{reservacion.evento}</strong> por {reservacion.usuario.username}.</p>
+                            <p>La reservación <strong>{nombre_anterior}</strong> ha sido actualizada a <strong>{reservacion.evento}</strong> 
+                            por {reservacion.usuario.username}.</p>
                             <h3>Detalles de la Reservación:</h3>
                             <ul>
                                 <li>📆 Fecha: {reservacion.fecha}</li>
@@ -492,13 +495,11 @@ def guardar_invitados(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
     
-# Vista para la proyeccio de reservaciones    
 def obtener_semanas_reservaciones():
     hoy = date.today()
     ahora = datetime.now()
     anio, semana, _ = hoy.isocalendar()
 
-    # Reservaciones de la semana actual
     reservas = Reservacion.objects.filter(
         fecha__week=semana,
         fecha__year=anio
@@ -509,7 +510,6 @@ def obtener_semanas_reservaciones():
         hora_final__lt=ahora.time()
     ).order_by('fecha', 'hora_inicio')
 
-    # Reservaciones en curso y proxima
     for r in reservas:
         inicio = datetime.combine(r.fecha, r.hora_inicio)
         fin = datetime.combine(r.fecha, r.hora_final)
@@ -522,7 +522,6 @@ def obtener_semanas_reservaciones():
             if minutos_restantes <= 30:
                 r.proxima = True
 
-    # Agrupar por semana 
     semanas = defaultdict(list)
     for r in reservas:
         año_r, semana_r, _ = r.fecha.isocalendar()

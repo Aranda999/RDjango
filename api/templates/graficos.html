@@ -24,13 +24,13 @@
             <img src="{% static 'img/IconMetro.webp' %}" alt="Logo 2" class="logo-2">
         </div>
 
-        <a href="{% url 'home' %}"
-        style="text-decoration: underline; color: black; position: absolute; top: 77px; right: 680px;">
-            <i class="fa-solid fa-right-from-bracket"></i>
-            Home
-        </a>
-
-        <p>Usuario: {{ request.user.username }}</p>
+        <div class="info-container" style="margin-left: 30px;">
+            <a href="{% url 'home' %}" class="home-link">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                Home
+            </a>
+            <p>Usuario: {{ request.user.username }}</p>
+        </div>
 
         <div class="formulario-filtro">
             <form method="get">
@@ -299,6 +299,32 @@
             pointer-events: none;
             opacity: 0.5;
             cursor: not-allowed;
+        }
+        
+        .info-container {
+            display: flex;
+            width: 100%;
+            gap: 250px;
+        }
+
+        .home-link {
+            text-decoration: none;
+            color: #000;
+        }
+
+        .info-container p {
+            margin: 0;
+        }
+        @media (max-width: 768px) {
+            .info-container {
+                display: flex;
+                justify-content: center;
+                gap: 5px;
+                margin-right: 40px;
+            }
+            .info-container .home-link {
+                margin-right: 85px;
+            }
         }
     </style>
 

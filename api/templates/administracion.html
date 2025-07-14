@@ -68,32 +68,36 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if request.GET.fecha == 'actuales_y_futuras' %}active{% endif %}"
-                        href="{% url 'administracion' %}?fecha=actuales_y_futuras">Actuales y futuras</a>
+                        href="{% url 'administracion' %}?fecha=actuales_y_futuras">Actuales / Futuras</a>
                 </li>
             </ul>
 
             <hr style="border-top: 3px solid rgb(156, 34, 34); margin-bottom: 2px; margin-top: 2px; ">
 
             {% if reservaciones %}
-            <div style="max-height: 394px; overflow-y: auto;">
-                <table class="table table-striped" style="table-layout: fixed;">
-                    <thead style="position: sticky; background-color: #fff;">
-                        <tr>
-                            <th style="border-bottom: 2px solid #333; width: 35%; padding: 5px;">Evento</th>
-                            <th style="border-bottom: 2px solid #333; width: 18%; padding: 5px;">Sala de Juntas</th>
-                            <th style="border-bottom: 2px solid #333; width: 14%; padding: 5px;">Fecha</th>
-                            <th style="border-bottom: 2px solid #333; width: 14%; padding: 5px;">Hora Inicio</th>
-                            <th style="border-bottom: 2px solid #333; width: 12%; padding: 5px;">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for reservacion in reservaciones %}
-                        <tr>
-                            <td style="word-break: break-word;">{{ reservacion.evento }}</td>
-                            <td>{{ reservacion.sala.nombre }}</td>
-                            <td>{{ reservacion.fecha }}</td>
-                            <td>{{ reservacion.hora_inicio }}</td>
-                            <td>
+                <div style="max-height: 394px; overflow-y: auto;">
+                    <table class="table table-striped" style="table-layout: fixed;">
+                        <thead style="position: sticky; background-color: #fff;">
+                            <tr>
+                                <th style="border-bottom: 2px solid #333; width: 25%; padding: 5px;">Evento</th>
+                                <th style="border-bottom: 2px solid #333; width: 15%; padding: 5px;">Sala J</th>
+                                <th style="border-bottom: 2px solid #333; width: 10%; padding: 5px;">Fecha</th>
+                                <th style="border-bottom: 2px solid #333; width: 10%; padding: 5px;">Hora Inicio</th>
+                                <th style="border-bottom: 2px solid #333; width: 10%; padding: 5px;">Hora Final</th>
+                                <th style="border-bottom: 2px solid #333; width: 15%; padding: 5px;">Usuario</th>
+                                <th style="border-bottom: 2px solid #333; width: 15%; padding: 5px;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reservacion in reservaciones %}
+                            <tr>
+                                <td style="word-break: break-word;">{{ reservacion.evento }}</td>
+                                <td>{{ reservacion.sala.nombre }}</td>
+                                <td>{{ reservacion.fecha }}</td>
+                                <td>{{ reservacion.hora_inicio }}</td>
+                                <td>{{ reservacion.hora_final }}</td>
+                                <td>{{ reservacion.usuario.username }}</td>
+                                <td>
                                 {% if reservacion.editable %}
                                 <a href="#" data-bs-toggle="modal"
                                     data-bs-target="#editarReservacion{{ reservacion.id_reservacion }}">
@@ -297,6 +301,12 @@
         }
 
         @media (max-width: 768px) {
+            .table th:nth-child(4),
+            .table td:nth-child(4),
+            .table th:nth-child(6),
+            .table td:nth-child(6) {
+                display: none;
+            }
             .loginContainer {
                 height: 100vh;
                 /* agrega esta línea */
@@ -355,29 +365,25 @@
             }
 
             .table th:nth-child(1) {
-                width: 25% !important;
-                /* ajusta el ancho de la columna "Evento" */
+                width: 20% !important; /* ajusta el ancho de la columna "Evento" */
             }
 
             .table th:nth-child(2) {
-                width: 10% !important;
-                /* ajusta el ancho de la columna "Sala de Juntas" */
+                width: 8% !important; /* ajusta el ancho de la columna "Sala de Juntas" */
             }
 
             .table th:nth-child(3) {
-                width: 10% !important;
-                /* ajusta el ancho de la columna "Fecha" */
+                width: 8% !important; /* ajusta el ancho de la columna "Fecha" */
             }
 
             .table th:nth-child(4) {
-                width: 10% !important;
-                /* ajusta el ancho de la columna "Hora Inicio" */
+                width: 8% !important; /* ajusta el ancho de la columna "Hora Inicio" */
             }
 
-            .table th:nth-child(5) {
-                width: 15% !important;
-                /* ajusta el ancho de la columna "Acciones" */
+            .table th:nth-child(7) {
+                width: 11% !important; /* ajusta el ancho de la columna "Acciones" */
             }
+
         }
     </style>
 

@@ -154,7 +154,6 @@
         var invitadosSeleccionados = [];
 
         document.addEventListener("DOMContentLoaded", function() {
-            // Manejar la apertura del modal y carga de invitados
             document.querySelectorAll(".abrirModalInvitados").forEach(button => {
                 button.addEventListener("click", function() {
                     let reservacionId = this.getAttribute("data-reservacion-id");
@@ -214,15 +213,15 @@
 
 
     <script>
+        // restricciones desahabilitadas para el administrador
         var esAdmin = "{{ request.user.is_superuser }}" === "True";
         var aplicarRestricciones = !esAdmin;
 
         $(document).ready(function () {
-            // Iterar sobre cada formulario de edición de reservación
             $('[id^="editarReservacion"]').each(function () {
                 var id_reservacion = $(this).attr('id').replace('editarReservacion', '');
 
-        // Asignar evento de reset the modal
+        // limpiar el modal
         $(this).on('show.bs.modal', function () {
             $('#formEditarReservacion' + id_reservacion)[0].reset();
             $('#error-message-editar-' + id_reservacion).html('');
@@ -239,12 +238,10 @@
             });
         });
 
-        // Agregar evento de cierre del modal
+
         $(this).on('hidden.bs.modal', function () {
-            // No recargar la página aquí, solo cuando se edite la reservación
         });
 
-        // Evento change en el campo de fecha de reservación
         $('#fechaReservacion_editar_' + id_reservacion).on('change', function () {
             var fecha = $(this).val();
             if (fecha) {
@@ -315,10 +312,8 @@
                 }
             }
         });
-                // Resto del código para manejar el botón de edición
+
         $('#boton-editar-' + id_reservacion).on('click', function () {
-            // Si se han seleccionado invitados en el modal de gestión de invitados,
-            // actualizar la variable invitadosSeleccionados
             if ($('.gestionar-invitados-checkbox:checked').length > 0) {
                 invitadosSeleccionados = [];
                 $('.gestionar-invitados-checkbox:checked').each(function() {
@@ -344,12 +339,9 @@
                 },
                 success: function (data) {
                     if (data.success) {
-                        // Cerrar el modal
                         $('#editarReservacion' + id_reservacion).modal('hide');
-                        // Recargar la página
                         location.reload();
                     } else {
-                        // Código para manejar la respuesta no exitosa
                         console.log('Error al editar la reservación');
                     }
                 },
@@ -359,7 +351,6 @@
             });
         }
 
-        // Función para obtener horarios ocupados
         function getHorariosOcupados(id_reservacion) {
             var sala_id = $('#salaJuntas_editar_' + id_reservacion).val();
             var fecha = $('#fechaReservacion_editar_' + id_reservacion).val();

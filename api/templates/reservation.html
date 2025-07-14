@@ -72,14 +72,17 @@
             <form method="get">
                 <div class="filtros-form">
                     <div class="form-group">
+                        <!-- fecha -->
                         {{ myFilter.form.fecha.label_tag }}
                         <span class="short-field">{{ myFilter.form.fecha }}</span>
                     </div>
                     <div class="form-group">
+                        <!-- sala -->
                         {{ myFilter.form.sala.label_tag }}
                         <span class="short-field sala-field">{{ myFilter.form.sala }}</span>
                     </div>
                     <div class="form-group evento-field">
+                        <!-- evento -->
                         {{ myFilter.form.evento.label_tag }} {{ myFilter.form.evento }}
                     </div>
                     <button type="submit" class="btn btn-primary">Filtrar</button>
@@ -316,12 +319,12 @@
     </div>
 
     <script>
-        // Mostrar u ocultar el botón de selección de destinatarios cuando se marca el checkbox
+        // mostrar el boton 
         document.getElementById("notificarReserva").addEventListener("change", function() {
             document.getElementById("seleccionDestinatarios").style.display = this.checked ? "block" : "none";
         });
 
-        // Guardar destinatarios seleccionados temporalmente al cerrar el modal
+        // guardar temporalmente
         document.getElementById("modalDestinatarios").addEventListener("hidden.bs.modal", function() {
             let seleccionados = [];
             document.querySelectorAll(".destinatario-checkbox:checked").forEach(el => {
@@ -329,28 +332,23 @@
             });
 
             document.getElementById("destinatariosSeleccionados").value = seleccionados.join(",");
-            console.log("Destinatarios guardados temporalmente:", seleccionados); // Depuración en consola
+            console.log("Destinatarios guardados temporalmente:", seleccionados);
         });
 
-        // Función para convertir fecha al formato correcto (yyyy-MM-dd)
         function convertirFecha(fechaStr) {
             let fecha = new Date(fechaStr);
-            return fecha.toISOString().split("T")[0];  // yyyy-MM-dd
+            return fecha.toISOString().split("T")[0];  
         }
 
-        // Función para convertir hora al formato correcto (HH:mm)
         function convertirHora(horaStr) {
             let hora = new Date("1970-01-01 " + horaStr);
-            return hora.toISOString().substr(11, 5);  // HH:mm
+            return hora.toISOString().substr(11, 5); 
         }
 
-        // Capturar fecha y hora en el formulario antes de enviarlo
         document.querySelector("form").addEventListener("submit", function(event) {
             let fechaReservacion = document.getElementById("fechaReservacion").value;
             let horaInicio = document.getElementById("horaInicio").value;
             let horaFinal = document.getElementById("horaFinal").value;
-
-            // Aplicar conversión al formato correcto
             document.getElementById("fechaReservacion").value = convertirFecha(fechaReservacion);
             document.getElementById("horaInicio").value = convertirHora(horaInicio);
             document.getElementById("horaFinal").value = convertirHora(horaFinal);
@@ -358,7 +356,6 @@
             console.log("Fecha y horas procesadas:", fechaReservacion, horaInicio, horaFinal);
         });
 
-        // Carga dinámica de destinatarios con caché para evitar múltiples peticiones
         let cacheDestinatarios = {};
 
         document.querySelectorAll("#tabsAreas .nav-link").forEach(tab => {
@@ -377,7 +374,7 @@
                             </div>
                         `).join("");
                         targetDiv.innerHTML = contenido;
-                        cacheDestinatarios[areaId] = contenido; // Guardar en caché
+                        cacheDestinatarios[areaId] = contenido; 
                     } catch (error) {
                         console.error("Error al cargar destinatarios:", error);
                     }
@@ -423,7 +420,7 @@
             $('#fechaReservacion').on('change', function () {
                 var fecha = $(this).val();
                 if (fecha === '') {
-                    $('#horarios-ocupados').html(''); // Limpiar horarios ocupados
+                    $('#horarios-ocupados').html(''); 
                     return;
                 }
                 var diaSemana = new Date(fecha).getDay();
@@ -586,8 +583,8 @@
             function mostrarHorariosOcupados() {
                 var horariosOcupadosHtml = '';
                 $.each(horariosOcupados, function (index, value) {
-                    var horaInicio = value.hora_inicio.substring(0, 5); // Extraer solo HH:mm
-                    var horaFinal = value.hora_final.substring(0, 5); // Extraer solo HH:mm
+                    var horaInicio = value.hora_inicio.substring(0, 5); 
+                    var horaFinal = value.hora_final.substring(0, 5); 
                     horariosOcupadosHtml += '<p style="margin: 0;">Ocupado: ' + horaInicio + ' - ' + horaFinal + '</p>';
                 });
                 $('#horarios-ocupados').html(horariosOcupadosHtml);

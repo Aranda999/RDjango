@@ -45,26 +45,27 @@ def Home(request):
 
 @login_required
 def Reservation(request):
+    # cargado areas y sus invitados
     reservaciones = Reservacion.objects.filter(usuario=request.user)
-    areas = Area.objects.prefetch_related('invitados').all()  # Cargar áreas y sus invitados
+    areas = Area.objects.prefetch_related('invitados').all()  
     salas = SalaJuntas.objects.all()
 
     fecha = request.GET.get('fecha')
     if fecha == 'actuales_y_futuras':
         reservaciones = reservaciones.filter(fecha__gte=timezone.now().date())
 
-    # Aplicar filtro a las reservaciones
+    # filtro a las reservaciones
     myFilter = ReservacionFilter(request.GET, queryset=reservaciones)
     reservaciones = myFilter.qs
 
-    # Determinar si una reservación es editable
+    # reservacion editable o no 
     for reservacion in reservaciones:
         hora_inicio = datetime.combine(reservacion.fecha, reservacion.hora_inicio)
         reservacion.editable = hora_inicio - datetime.now() >= timedelta(hours=1)
         reservacion.eliminable = hora_inicio - datetime.now() > timedelta(hours=1)
 
     if request.method == 'POST':
-        # Obtener datos del formulario
+        # datos que se optienen por el metodo POST
         fecha_reservacion = request.POST.get('fechaReservacion')
         hora_inicio_str = request.POST.get('horaInicio')
         hora_final_str = request.POST.get('horaFinal')
@@ -74,13 +75,13 @@ def Reservation(request):
         enviar_correo = request.POST.get('notificarReserva') == "on"
         destinatarios_ids = request.POST.get('destinatariosSeleccionados', "")
 
-        # Validar que los destinatarios se están recibiendo correctamente
-        print(f"Destinatarios recibidos en la solicitud: {destinatarios_ids}")  # Depuración en consola
+        # Impresion de destinatarios
+        print(f"Destinatarios recibidos en la solicitud: {destinatarios_ids}")  
 
-        destinatarios_ids = destinatarios_ids.split(",") if destinatarios_ids else []  # Convertir en lista
+        destinatarios_ids = destinatarios_ids.split(",") if destinatarios_ids else [] 
 
         try:
-            # Convertir fecha y hora al formato correcto
+            # Conversion de horarios
             fecha_reservacion = datetime.strptime(fecha_reservacion, '%Y-%m-%d').date()
             hora_inicio = datetime.strptime(hora_inicio_str, '%H:%M').time()
             hora_final = datetime.strptime(hora_final_str, '%H:%M').time()
@@ -90,7 +91,7 @@ def Reservation(request):
 
         sala = SalaJuntas.objects.get(id_sala=sala_id)
 
-        # Guardar la nueva reservación
+        # guardar en la tabla la nueva reservación
         nueva_reservacion = Reservacion.objects.create(
             evento=evento,
             comentarios=comentarios,
@@ -102,17 +103,16 @@ def Reservation(request):
             enviar_correo=enviar_correo
         )
 
-        # Guardar múltiples destinatarios solo si hay datos válidos
+        # guardado de destinatarios
         if destinatarios_ids and destinatarios_ids[0] != "":
             invitados_a_guardar = [
                 ReservacionInvitado(reservacion=nueva_reservacion, invitado=Invitado.objects.get(id_invitado=int(destinatario_id)))
                 for destinatario_id in destinatarios_ids if destinatario_id.strip().isdigit()
             ]
-            
-            # Inserción masiva en la base de datos
+    
             ReservacionInvitado.objects.bulk_create(invitados_a_guardar)
 
-        # Enviar correos si la opción de notificación está activada
+        # Enviar correos
         if enviar_correo and destinatarios_ids:
             destinatarios_correo = [invitado.correo for invitado in Invitado.objects.filter(id_invitado__in=destinatarios_ids)]
             if destinatarios_correo:

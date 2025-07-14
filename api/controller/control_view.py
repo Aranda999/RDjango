@@ -19,21 +19,18 @@ from api.isc import generar_ics
 
 
 def administracion(request):
-    # Obtener todas las salas
     salas = SalaJuntas.objects.all()
-
-    # Verificar si se requiere filtrar por fecha actual/futura
     filtro_fecha = request.GET.get('fecha')
     reservaciones = Reservacion.objects.all().order_by('fecha', 'hora_inicio')
+    areas = Area.objects.prefetch_related('invitados').all()
 
     if filtro_fecha == 'actuales_y_futuras':
         reservaciones = reservaciones.filter(fecha__gte=date.today())
-
-    # Aplicar filtro personalizado
+    # filtros
     myFilter = ReservacionFilter(request.GET, queryset=reservaciones)
     reservaciones = myFilter.qs
 
-    # Calcular si cada reservación puede ser editada o eliminada
+    # edicion o eliminacion 
     ahora = datetime.now()
     for reservacion in reservaciones:
         inicio = datetime.combine(reservacion.fecha, reservacion.hora_inicio)
@@ -41,15 +38,12 @@ def administracion(request):
         reservacion.editable = puede_modificar
         reservacion.eliminable = puede_modificar
 
-    # Cargar áreas con invitados (para el modal de gestión)
-    areas = Area.objects.prefetch_related('invitados').all()
-
+    # Metodo POST
     if request.method == 'POST' and 'eliminar_reservacion' in request.POST:
         pk = request.POST.get('id_reservacion')
-        motivo = request.POST.get('motivo')
         reservacion = get_object_or_404(Reservacion, id_reservacion=pk)
 
-        # Enviar correo a invitados
+        # CORREO DE LA ELIMINACION POR EL ADMIN 
         invitados = Invitado.objects.filter(reservacioninvitado__reservacion=reservacion)
         for invitado in invitados:
             subject = f"Reservación eliminada: {reservacion.evento}"
@@ -63,7 +57,6 @@ def administracion(request):
                     <li>🕒 Hora de fin: {reservacion.hora_final}</li>
                     <li>🏢 Sala: {reservacion.sala}</li>
                 </ul>
-                <p>Motivo de eliminación: <strong>{motivo}</strong></p>
                 <p>Atentamente,</p>
                 <p>{request.user.username}</p>
             """
@@ -72,12 +65,11 @@ def administracion(request):
         reservacion.delete()
         return redirect(request.get_full_path())
 
-    # Contexto para la plantilla
     context = {
         'reservaciones': reservaciones,
         'myFilter': myFilter,
         'salas': salas,
-        'areas': areas,  # Necesario para mostrar opciones en el modal de gestión de invitaciones,
+        'areas': areas,  
     }
 
     return render(request, 'administracion.html', context)
@@ -104,7 +96,7 @@ def Periodicamente(request):
 
         fechas = [datetime.strptime(f, "%Y-%m-%d").date() for f in fechas_str]
 
-        # Guardar reservaciones
+        # Insertar reservaciones
         reservas = [
             Reservacion(
                 evento=evento,
@@ -216,7 +208,7 @@ def ValidadrFechas(request):
                     'fin': r.hora_final.strftime("%H:%M")
                 })
         else:
-            disponibles.append(f.strftime("%Y-%m-%d"))  # ejemplo: '2025-06-04'
+            disponibles.append(f.strftime("%Y-%m-%d"))  
 
 
     return JsonResponse({
@@ -225,24 +217,36 @@ def ValidadrFechas(request):
     })
 
 
-
-
 def monitor_sala(request, nombre_sala):
     sala = get_object_or_404(SalaJuntas, nombre=nombre_sala)
 
     hoy = timezone.now().date()
-    primer_dia_mes = hoy.replace(day=1)
-    ultimo_dia_mes = primer_dia_mes.replace(day=calendar.monthrange(hoy.year, hoy.month)[1])
 
-    # Crear lista con todos los días del mes
-    dias_mes = [primer_dia_mes + timedelta(days=i) for i in range((ultimo_dia_mes - primer_dia_mes).days + 1)]
+    primer_dia_mes = hoy.replace(day=1)
+    ultimo_dia_mes = primer_dia_mes.replace(
+        day=calendar.monthrange(hoy.year, hoy.month)[1]
+    )
+
+    dia_semana_inicio = primer_dia_mes.weekday()  
+
+    inicio_calendario = primer_dia_mes - timedelta(days=dia_semana_inicio)
+
+    dias_totales = 35 
+
+    dias_mes = [
+        (inicio_calendario + timedelta(days=i)).strftime('%Y-%m-%d')
+        for i in range(dias_totales)
+    ]
 
     return render(request, 'calendario_cl.html', {
         'sala': sala,
         'dias_mes': dias_mes,
-        'primer_dia_mes': primer_dia_mes,
-        'ultimo_dia_mes': ultimo_dia_mes,
+        'primer_dia_mes': primer_dia_mes.strftime('%Y-%m-%d'),
+        'ultimo_dia_mes': ultimo_dia_mes.strftime('%Y-%m-%d'),
+        'mes_actual': hoy.month,
     })
+
+
 from django.http import JsonResponse
 
 def api_reservaciones_sala(request, nombre_sala):

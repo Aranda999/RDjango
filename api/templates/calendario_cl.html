@@ -101,135 +101,111 @@
 
     {{ dias_mes|json_script:"dias-mes" }}
 
+    <script id="mes-actual" type="application/json">
+        {{ mes_actual|add:"-1" }}
+    </script>
+
     <script>
         const diasMes = JSON.parse(document.getElementById('dias-mes').textContent);
-        const nombreSala = "{{ sala.nombre }}";
+        const nombreSala = "{{ sala.nombre|escapejs }}";
+        const mesActual = JSON.parse(document.getElementById('mes-actual').textContent);
 
         function actualizarReloj() {
             const ahora = new Date();
             document.getElementById('reloj').textContent = ahora.toLocaleTimeString('es-MX');
         }
+
         function crearCalendario() {
             const tbody = document.getElementById('calendario-body');
             tbody.innerHTML = '';
 
-            const hoy = new Date();
-            hoy.setHours(0, 0, 0, 0); // Eliminar la hora para comparar solo fechas
-
             let fila = document.createElement('tr');
             let diasFila = 0;
-            let semanaCompleta = [];
 
+            // Obtener el primer día del mes visible
+            const primerDia = diasMes.find(d => {
+                const partes = d.split('-');
+                const fecha = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
+                const diaSemana = fecha.getDay();
+                return diaSemana >= 1 && diaSemana <= 5; // Solo lunes a viernes
+            });
+
+            if (primerDia) {
+                const partes = primerDia.split('-');
+                const fechaInicio = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
+                const diaSemanaInicio = fechaInicio.getDay(); // 1=Lun, ..., 5=Vie
+
+                // Agregar celdas vacías si no comienza en lunes
+                for (let i = 1; i < diaSemanaInicio; i++) {
+                    const tdVacio = document.createElement('td');
+                    tdVacio.classList.add('vacio');
+                    fila.appendChild(tdVacio);
+                    diasFila++;
+                }
+            }
+
+            // Agregar los días del mes (de lunes a viernes)
             diasMes.forEach(d => {
                 const partes = d.split('-');
                 const anio = parseInt(partes[0], 10);
                 const mes = parseInt(partes[1], 10) - 1;
                 const dia = parseInt(partes[2], 10);
                 const fecha = new Date(anio, mes, dia);
-                fecha.setHours(0, 0, 0, 0);
+                const diaSemana = fecha.getDay();
 
-                const diaSemana = fecha.getDay(); // 0=Dom, 6=Sab
+                if (diaSemana === 0 || diaSemana === 6) return; // Omitir domingos y sábados
 
-                if (diaSemana === 0 || diaSemana === 6) return; // Omitir sábado y domingo
+                const td = document.createElement('td');
+                td.setAttribute('data-fecha', d);
 
-                if (diaSemana === 1 && diasFila > 0) {
-                    // Evaluar si la semana tiene al menos un día "hoy o futuro"
-                    const tieneDiaFuturo = semanaCompleta.some(f => f >= hoy);
-                    if (tieneDiaFuturo) {
-                        semanaCompleta.forEach(({ fecha, d }) => {
-                            const td = document.createElement('td');
-                            td.setAttribute('data-fecha', d);
-
-                            const div = document.createElement('div');
-                            div.className = 'dia-numero';
-                            div.textContent = fecha.getDate();
-                            td.appendChild(div);
-
-                            fila.appendChild(td);
-                        });
-                        tbody.appendChild(fila);
-                    }
-
-                    // Reset para siguiente fila
-                    fila = document.createElement('tr');
-                    diasFila = 0;
-                    semanaCompleta = [];
+                // Marcar días fuera del mes actual
+                if (fecha.getMonth() !== mesActual) {
+                    td.classList.add('fuera-del-mes');
                 }
 
-                semanaCompleta.push({ fecha, d });
+                // Marcar hoy
+                const hoy = new Date().toISOString().split('T')[0];
+                if (d === hoy) {
+                    td.classList.add('hoy');
+                }
+
+                const numero = document.createElement('div');
+                numero.className = 'dia-numero';
+                numero.textContent = fecha.getDate();
+                td.appendChild(numero);
+
+                fila.appendChild(td);
                 diasFila++;
 
-                // Si es viernes, evaluar y cerrar semana
                 if (diasFila === 5) {
-                    const tieneDiaFuturo = semanaCompleta.some(f => f.fecha >= hoy);
-                    if (tieneDiaFuturo) {
-                        semanaCompleta.forEach(({ fecha, d }) => {
-                            const td = document.createElement('td');
-                            td.setAttribute('data-fecha', d);
-
-                            const div = document.createElement('div');
-                            div.className = 'dia-numero';
-                            div.textContent = fecha.getDate();
-                            td.appendChild(div);
-
-                            fila.appendChild(td);
-                        });
-                        tbody.appendChild(fila);
-                    }
-
+                    tbody.appendChild(fila);
                     fila = document.createElement('tr');
                     diasFila = 0;
-                    semanaCompleta = [];
                 }
             });
 
-            // Si queda una semana incompleta al final
-            if (semanaCompleta.length > 0) {
-                const tieneDiaFuturo = semanaCompleta.some(f => f.fecha >= hoy);
-                if (tieneDiaFuturo) {
-                    semanaCompleta.forEach(({ fecha, d }) => {
-                        const td = document.createElement('td');
-                        td.setAttribute('data-fecha', d);
-
-                        const div = document.createElement('div');
-                        div.className = 'dia-numero';
-                        div.textContent = fecha.getDate();
-                        td.appendChild(div);
-
-                        fila.appendChild(td);
-                    });
-                    tbody.appendChild(fila);
-                }
+            // Agrega la última fila si quedó incompleta
+            if (fila.children.length > 0) {
+                tbody.appendChild(fila);
             }
         }
-
-
 
         async function cargarReservaciones() {
             const url = `/api/reservaciones/mes/${nombreSala}/?inicio={{ primer_dia_mes }}&fin={{ ultimo_dia_mes }}`;
             const response = await fetch(url);
             const data = await response.json();
 
+            // Limpiar eventos anteriores
             document.querySelectorAll('td[data-fecha]').forEach(td => {
                 td.querySelectorAll('.evento').forEach(ev => ev.remove());
             });
 
             const colores = [
-                '#C9E4CA', // Verde pastel claro
-                '#F7D2C4', // Naranja pastel claro
-                '#C5CAE9', // Azul pastel claro
-                '#FFC5C5', // Rosa pastel claro
-                '#C6E2B5', // Verde lima pastel claro
-                '#F2C464', // Amarillo pastel claro
-                '#87CEEB', // Azul cielo pastel claro
-                '#FFB6C1', // Rosa salmón pastel claro
-                '#E2C5F7', // Púrpura pastel claro
-                '#B2FFFC', // Azul turquesa pastel claro
-                '#F0E4CC', // Beige pastel claro
-                '#D7B8D7'  // Lavanda pastel claro
+                '#C9E4CA', '#F7D2C4', '#C5CAE9', '#FFC5C5', '#C6E2B5',
+                '#F2C464', '#87CEEB', '#FFB6C1', '#E2C5F7', '#B2FFFC',
+                '#F0E4CC', '#D7B8D7'
             ];
 
-            let indiceColor = 0;
             data.reservaciones.forEach(r => {
                 const td = document.querySelector(`td[data-fecha="${r.fecha}"]`);
                 if (!td) return;
@@ -240,6 +216,9 @@
 
                 const divNombreEvento = document.createElement('div');
                 divNombreEvento.style.fontWeight = 'bold';
+                divNombreEvento.style.wordBreak = 'break-word';
+                divNombreEvento.style.whiteSpace = 'normal';
+                divNombreEvento.style.overflowWrap = 'break-word';
                 divNombreEvento.textContent = r.evento;
 
                 const divHorario = document.createElement('div');
@@ -258,6 +237,8 @@
         setInterval(actualizarReloj, 1000);
         setInterval(cargarReservaciones, 60000);
     </script>
+
+
 </body>
 
 </html>

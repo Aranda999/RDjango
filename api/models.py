@@ -10,11 +10,10 @@ class HomePermission(models.Model):
             ("Home", "Puede ver el home"),
         ]
 
-
 #TABLAS DE BD
 class Area(models.Model):
     id_area = models.CharField(
-        primary_key=True,
+        primary_key=True,   
         max_length=10,
         verbose_name="ID de Área (abreviatura)"
     )
@@ -26,7 +25,6 @@ class Area(models.Model):
     def __str__(self):
         return f"{self.id_area} - {self.nombre}"
 
-# Modificación en la clase Empleado
 class Empleado(models.Model):
     empleado_id = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=100)
@@ -34,7 +32,7 @@ class Empleado(models.Model):
     apellido_materno = models.CharField(max_length=100)
     numero_empleado = models.CharField(max_length=20, unique=True)
     usuario = models.OneToOneField(User, on_delete=models.CASCADE)
-    id_area = models.ForeignKey(Area, on_delete=models.CASCADE)  # Agregado: clave foránea de área
+    id_area = models.ForeignKey(Area, on_delete=models.CASCADE)  
 
     class Meta:
         db_table = 'empleados'
@@ -46,7 +44,7 @@ class Empleado(models.Model):
 class Invitado(models.Model):
     id_invitado = models.AutoField(primary_key=True)
     nombre_completo = models.CharField(max_length=200)
-    correo = models.EmailField(unique=True)  # Evita duplicados de correo
+    correo = models.EmailField(unique=True)  
     id_area = models.ForeignKey(Area, on_delete=models.CASCADE, related_name="invitados")
 
     class Meta:
@@ -76,7 +74,7 @@ class Reservacion(models.Model):
     hora_final = models.TimeField()
     sala = models.ForeignKey(SalaJuntas, on_delete=models.CASCADE)
     usuario = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    enviar_correo = models.BooleanField(default=False)  # Indica si se enviará notificación
+    enviar_correo = models.BooleanField(default=False)  
 
     class Meta:
         db_table = 'reservaciones'
@@ -86,12 +84,12 @@ class Reservacion(models.Model):
 
 class ReservacionInvitado(models.Model):
     id_reservacion_invitado = models.AutoField(primary_key=True)
-    reservacion = models.ForeignKey(Reservacion, on_delete=models.CASCADE)  # Si se borra la reservación, también se eliminan los invitados
-    invitado = models.ForeignKey(Invitado, on_delete=models.CASCADE)  # Si un invitado se borra, se elimina la relación
+    reservacion = models.ForeignKey(Reservacion, on_delete=models.CASCADE) 
+    invitado = models.ForeignKey(Invitado, on_delete=models.CASCADE)  
 
     class Meta:
         db_table = 'reservacion_invitados'
-        unique_together = ('reservacion', 'invitado')  # Evita duplicados
+        unique_together = ('reservacion', 'invitado') 
 
     def __str__(self):
         return f"{self.invitado.nombre_completo} en {self.reservacion.evento}"
