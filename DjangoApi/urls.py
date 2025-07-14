@@ -16,6 +16,8 @@ Including another URLconf
 """
 
 from django.contrib import admin
+from django.conf import settings
+from django.conf.urls.static import static
 from django.urls import reverse
 from django.urls import path, reverse_lazy
 from django.urls import path
@@ -37,7 +39,7 @@ from api.tools.tools_view import enviar_notificacion
 from api.tools.tools_view import descargar_reporte_pdf
 from api.security.security_view import Password
 from api.security.security_view import reset_password
-from api.video.video_view import camera_view
+from api.video.video_view import conteo
 from api.controller.control_view import administracion
 from api.controller.control_view import Periodicamente
 from api.controller.control_view import ValidadrFechas
@@ -65,7 +67,7 @@ urlpatterns = [
     path('reservas-publico/', vista_reservas_semanales, name='reservas_semanales'),
     path('notificacion/', Notificaciones, name='notificacion'),
     path('enviar_notificacion/', enviar_notificacion, name='enviar_notificacion'),
-    path('camera/', camera_view, name='camera_view'),
+    path('camera/', conteo, name='camera_view'),
     path('administracion/', administracion, name='administracion'),
     path('periodica/', Periodicamente, name='periodica'),
     path('eliminar_reservacion/<int:pk>/', eliminar_reservacion, name='eliminar_reservacion'),
@@ -76,3 +78,5 @@ urlpatterns = [
 ]
 
 
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

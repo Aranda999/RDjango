@@ -75,6 +75,7 @@ class Reservacion(models.Model):
     sala = models.ForeignKey(SalaJuntas, on_delete=models.CASCADE)
     usuario = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     enviar_correo = models.BooleanField(default=False)  
+    monitorear = models.BooleanField(default=True) 
 
     class Meta:
         db_table = 'reservaciones'
@@ -95,5 +96,17 @@ class ReservacionInvitado(models.Model):
         return f"{self.invitado.nombre_completo} en {self.reservacion.evento}"
 
 
+class ConteoPersonas(models.Model):
+    id_conteo = models.AutoField(primary_key=True)
+    reservacion = models.ForeignKey(Reservacion, on_delete=models.CASCADE)
+    foto = models.ImageField(upload_to='conteos/')
+    personas_contadas = models.PositiveIntegerField()
+    fecha = models.DateField()
+
+    class Meta:
+        db_table = 'conteos_personas'
+
+    def __str__(self):
+        return f"Conteo {self.id_conteo} - {self.personas_contadas} personas"
 
 

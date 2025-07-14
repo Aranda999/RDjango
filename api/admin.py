@@ -46,3 +46,11 @@ class ReservacionAdmin(admin.ModelAdmin):
 class ReservacionInvitadoAdmin(admin.ModelAdmin):
     list_display = ('reservacion', 'invitado')
     search_fields = ('reservacion__evento', 'invitado__nombre_completo')
+
+from api.models import ConteoPersonas
+
+@admin.register(ConteoPersonas)
+class ConteoPersonasAdmin(admin.ModelAdmin):
+    list_display = ('id_conteo', 'reservacion', 'personas_contadas', 'fecha')
+    list_filter = ('fecha', 'personas_contadas')
+    search_fields = ('reservacion__evento',)
