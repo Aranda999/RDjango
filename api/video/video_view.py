@@ -19,7 +19,7 @@ VisionRunningMode = mp.tasks.vision.RunningMode
 model_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static/efficientdet_lite0.tflite')
 options = ObjectDetectorOptions(
     base_options=BaseOptions(model_asset_path=model_path),
-    max_results=10,  # Aumentar el número máximo de resultados
+    max_results=10,  
     running_mode=VisionRunningMode.IMAGE)
 detector = ObjectDetector.create_from_options(options)
 
@@ -40,7 +40,7 @@ def conteo(request):
     temp_dir = os.path.join(os.path.dirname(__file__), 'temp')
     os.makedirs(temp_dir, exist_ok=True)
 
-    rtsp_url = "rtsp://adminRLlarena:server2410@192.168.1.84 :554/stream1"
+    rtsp_url = "rtsp://adminRLlarena:server2410@192.168.1.37:554/stream1"
 
     while datetime.now().strftime("%H:%M") < end_time:
         if datetime.now().strftime("%H:%M") >= start_time:
