@@ -40,7 +40,7 @@ def conteo(request):
     temp_dir = os.path.join(os.path.dirname(__file__), 'temp')
     os.makedirs(temp_dir, exist_ok=True)
 
-    rtsp_url = "rtsp://adminRLlarena:server2410@192.168.1.84:554/stream1"
+    rtsp_url = "rtsp://adminRLlarena:server2410@192.168.1.84 :554/stream1"
 
     while datetime.now().strftime("%H:%M") < end_time:
         if datetime.now().strftime("%H:%M") >= start_time:

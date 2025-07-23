@@ -76,7 +76,7 @@ def graficos(request):
     if filtros_seleccionados:        
         # Primer Grafico
         reservaciones_por_usuario = reservaciones.values('usuario__username').annotate(total_reservaciones=Count('id_reservacion')).order_by('-total_reservaciones')
-        if reservaciones_por_usuario: # Solo genera si hay datos
+        if reservaciones_por_usuario: 
             usuarios = [item['usuario__username'] for item in reservaciones_por_usuario]
             cantidad_reservaciones_usuario = [item['total_reservaciones'] for item in reservaciones_por_usuario]
             df = pd.DataFrame({'usuario': usuarios, 'cantidad': cantidad_reservaciones_usuario})
